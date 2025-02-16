@@ -33,7 +33,7 @@
                                         Nessuna immagine
                                     {% endif %}
                                 </td>
-                                <td><a href="/playlist/{{ playlist['id'] }}">Visualizza brani</a></td> <!-- Link to view tracks -->
+                                <td>      <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" ass="btn btn-primary btn-sm">Visualizza brani</a></td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -41,6 +41,6 @@
                 {% else %}
                     <p>Non hai playlist disponibili.</p>
                 {% endif %}
-            <a href="{{ url_for('logout') }}">Logout</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
         </body>
     </html>
