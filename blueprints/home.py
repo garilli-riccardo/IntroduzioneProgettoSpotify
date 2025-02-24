@@ -24,3 +24,15 @@ def playlist_tracks(playlist_id):
 
     return render_template('playlist.html', tracks=tracks)
 
+@home_bp.route('/home/cerca', methods=['GET'])
+def cerca():
+    query = request.args.get('query')
+    if not query:
+        return render_template('search.html', results=None)
+    
+    results = sp.search(q=query, type='playlist', limit=10)
+    playlists = results['playlists']['items']
+
+    return render_template('home.html', results = playlists)
+
+
