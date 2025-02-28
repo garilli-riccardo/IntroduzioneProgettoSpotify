@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
 import spotipy
 from services.spotify_oauth import sp_public, get_spotify_object, sp_oauth
+import requests
 
 home_bp = Blueprint('home', __name__)
 
@@ -49,7 +50,11 @@ def cerca():
     playlists = results['playlists']['items']
     return render_template('home.html', user_info=user_info, results=playlists)
 
-@home_bp.route('/artistinfo/<artist_id>')
+
+@home_bp.route('/artistinfo/<artist_id>', methods=['GET'])
+
+
+
 def artistinfo(artist_id):
     token_info = session.get('token_info', None)
 
@@ -57,18 +62,63 @@ def artistinfo(artist_id):
         return redirect(url_for('auth.login'))
 
     sp = spotipy.Spotify(auth=token_info['access_token'])
+    
+    
+   
+        # Ottieni le informazioni sull'artista
+    #artist_cor= get_related_artists(artist_id)
     artist_info = sp.artist(artist_id)
     top_tracks = sp.artist_top_tracks(artist_id, country="IT")['tracks']
     albums = sp.artist_albums(artist_id, album_type='album', country="IT")['items']
-    related_artists = sp.artist_related_artists(artist_id)['artists']
+        
+        # Ottieni gli artisti correlati
 
+    
+
+
+    # Prepara i dati dell'artista
     artist_data = {
         "name": artist_info['name'],
         "genres": artist_info['genres'],
         "image": artist_info['images'][0]['url'] if artist_info['images'] else None,
         "top_tracks": [{"name": track["name"], "preview_url": track["preview_url"]} for track in top_tracks[:5]],
         "albums": [{"name": album["name"], "image": album["images"][0]['url']} for album in albums[:3]],
-        "related_artists": [related["name"] for related in related_artists[:5]] 
+        
+        #"related_artists": [{"name": artist["name"]} for artist in artist_cor]
+        
     }
 
-    return render_template('artistinfo.html', artist_data=artist_data, related_artists=related_artists)
+    return render_template('artistinfo.html', artist_data=artist_data)
+
+
+'''
+def get_related_artists(artist_id):
+    
+    # Endpoint dell'API
+    token_info = session.get('token_info', None)
+
+    if not token_info:
+        return redirect(url_for('auth.login'))
+
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/related-artists"
+
+    # Intestazione della richiesta
+    headers = {
+        "Authorization": f"Bearer {sp}"
+    }
+
+    # Fai la richiesta GET
+    response = requests.get(url, headers=headers)
+
+    # Controlla se la richiesta è andata a buon fine
+    if response.status_code == 200:
+        # Estrai i dati degli artisti correlati
+        related_artists = response.json()["artists"]
+        return related_artists
+    else:
+        # Stampa l'errore se la richiesta non è andata a buon fine
+        print(f"Errore: {response.status_code}")
+        return None
+        '''

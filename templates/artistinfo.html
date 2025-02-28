@@ -39,20 +39,7 @@
         {% endfor %}
     </ul>
 
-    <p><strong>Followers:</strong> {{ artist['followers']['total'] }}</p>
-        <p><strong>Popularity:</strong> {{ artist['popularity'] }}</p>
-
-        <h3>Artisti Correlati</h3>
-        <ul>
-            {% for related_artist in related_artists %}
-            <li>
-                <a href="{{ url_for('home.artistinfo', artist_id=related_artist['id']) }}">
-                    <img src="{{ related_artist['images'][0]['url'] }}" width="50" alt="{{ related_artist['name'] }}">
-                    {{ related_artist['name'] }}
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
+    
     <p><a href="{{ url_for('home.homepage') }}">Torna alla Home</a></p>
 </body>
 </html>
