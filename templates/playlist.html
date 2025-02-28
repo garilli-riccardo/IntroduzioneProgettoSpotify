@@ -50,7 +50,13 @@
                 {% for track in tracks %}
                 <tr>
                     <td>{{ track['track']['name'] }}</td>
-                    <td>{{ track['track']['artists'][0]['name'] }}</td>
+                    <td>
+                        {% for artist in track['track']['artists'] %}
+                            <a href="{{ url_for('home.artistinfo', artist_id=artist['id']) }}">
+                                {{ artist['name'] }}
+                            </a>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
                     <td>{{ track['track']['album']['name'] }}</td> 
                     <td>{{ track['track']['duration_ms'] // 1000 }} sec</td> 
                 </tr>

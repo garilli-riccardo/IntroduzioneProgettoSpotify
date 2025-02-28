@@ -1,48 +1,84 @@
 <!DOCTYPE html>
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-            <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
-            {% if user_info['images'] %}
-            <img src="{{ user_info['images'][0]['url'] }}" width="200">
-            {% endif %}
-            <FORm action="/home/cerca"><input type="text" placeholder="Search.." ></FORm>
-            
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    {% if user_info %}
+        <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
+    {% else %}
+        <h1>Benvenuto, esplora le playlist!</h1>
+    {% endif %}
 
-            <h2>Le tue Playlist:</h2>
-            {% if playlists %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>|Nome Playlist|</th>
-                            <th>|Numero di Brani|</th>
-                            <th>|Copertina|</th>
-                            <th>|Visualizza Brani|</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for playlist in playlists %}
-                            <tr>
-                                <td>{{ playlist['name'] }}</td>
-                                <td>{{ playlist['tracks']['total'] }}</td>
-                                <td>
-                                    {% if playlist['images'] %}
-                                        <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
-                                    {% else %}
-                                        Nessuna immagine
-                                    {% endif %}
-                                </td>
-                                <td>      <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" ass="btn btn-primary btn-sm">Visualizza brani</a></td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                    <p>Non hai playlist disponibili.</p>
-                {% endif %}
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-        </body>
-    </html>
+    <form action="{{ url_for('home.cerca') }}" method="get">
+        <input type="text" name="query" placeholder="Cerca una playlist..." required value="{{ request.args.get('query', '') }}">
+        <button type="submit">Cerca</button>
+    </form>
+    
+    {% if request.args.get('query') %}
+        <p>Risultati per: <strong>{{ request.args.get('query', '') }}</strong></p>
+    
+        {% if results %}
+            <ul>
+                {% for playlist in results %}
+                    {% if playlist %}  
+                    <li>
+                        <strong>{{ playlist.get('name', 'Senza Nome') }}</strong><br>
+    
+                        {% if playlist.get('images') %}
+                            <img src="{{ playlist['images'][0]['url'] }}" width="100">
+                        {% endif %}
+    
+                        {% if playlist.get('external_urls') and playlist['external_urls'].get('spotify') %}
+                            <p><a href="{{ playlist['external_urls']['spotify'] }}" target="_blank">Ascolta su Spotify</a></p>
+                        {% else %}
+                            <p>Link non disponibile</p>
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nessuna playlist trovata.</p>
+            
+        {% endif %}
+        <p><a href="/">Torna alla Home</a></p>
+    {% else %}
+        <h2>Le tue Playlist:</h2>
+        {% if playlists %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome Playlist</th>
+                    <th>Numero di Brani</th>
+                    <th>Copertina</th>
+                    <th>Visualizza Brani</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for playlist in playlists %}
+                <tr>
+                    <td>{{ playlist['name'] }}</td>
+                    <td>{{ playlist['tracks']['total'] }}</td>
+                    <td>
+                        {% if playlist['images'] %}
+                        <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                        {% else %}
+                        Nessuna immagine
+                        {% endif %}
+                    </td>
+                    <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+        <p>Non hai playlist disponibili.</p>
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+    {% endif %}
+
+    

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ artist_data.name }} - Artista</title>
+</head>
+<body>
+    <h1>{{ artist_data.name }}</h1>
+
+    {% if artist_data.image %}
+        <img src="{{ artist_data.image }}" width="150" alt="{{ artist_data.name }}">
+    {% endif %}
+    
+    <p><strong>Generi:</strong> {{ artist_data.genres | join(', ') }}</p>
+
+    <h3>Canzoni più ascoltate:</h3>
+    <ul>
+        {% for track in artist_data.top_tracks %}
+            <li>
+                {{ track.name }}
+                {% if track.preview_url %}
+                    <audio controls>
+                        <source src="{{ track.preview_url }}" type="audio/mpeg">
+                        Il tuo browser non supporta l'audio HTML5.
+                    </audio>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3>Album:</h3>
+    <ul>
+        {% for album in artist_data.albums %}
+            <li>
+                <img src="{{ album.image }}" width="100">
+                {{ album.name }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p><strong>Followers:</strong> {{ artist['followers']['total'] }}</p>
+        <p><strong>Popularity:</strong> {{ artist['popularity'] }}</p>
+
+        <h3>Artisti Correlati</h3>
+        <ul>
+            {% for related_artist in related_artists %}
+            <li>
+                <a href="{{ url_for('home.artistinfo', artist_id=related_artist['id']) }}">
+                    <img src="{{ related_artist['images'][0]['url'] }}" width="50" alt="{{ related_artist['name'] }}">
+                    {{ related_artist['name'] }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    <p><a href="{{ url_for('home.homepage') }}">Torna alla Home</a></p>
+</body>
+</html>
