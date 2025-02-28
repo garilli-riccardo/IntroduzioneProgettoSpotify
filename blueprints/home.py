@@ -68,7 +68,7 @@ def artistinfo(artist_id):
         "image": artist_info['images'][0]['url'] if artist_info['images'] else None,
         "top_tracks": [{"name": track["name"], "preview_url": track["preview_url"]} for track in top_tracks[:5]],
         "albums": [{"name": album["name"], "image": album["images"][0]['url']} for album in albums[:3]],
-        "related_artists": [related["name"] for related in related_artists[:5]]
+        "related_artists": [related["name"] for related in related_artists[:5]] 
     }
 
-    return render_template('artistinfo.html', artist_data=artist_data)
+    return render_template('artistinfo.html', artist_data=artist_data, related_artists=related_artists)

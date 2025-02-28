@@ -1,12 +1,10 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 
-
-SPOTIFY_CLIENT_ID = "870d4ed3b63d47e99031f27e9629b4cd"
-SPOTIFY_CLIENT_SECRET = "97fb37e2c66a4629ae529ccbf5412ac0"
-SPOTIFY_REDIRECT_URI = "https://5000-garilliricc-introduzion-j216zyof20h.ws-eu118.gitpod.io/callback" 
+SPOTIFY_CLIENT_ID = "4acc6335a0c14f53839704d9454494de"
+SPOTIFY_CLIENT_SECRET = "8af9e9866d40447c8cf7081a2748adb4"
+SPOTIFY_REDIRECT_URI = "https://5000-garilliricc-introduzion-1cs02dvmh22.ws-eu118.gitpod.io/callback" 
 SPOTIFY_SCOPE = "user-read-private user-read-email playlist-read-private"
-
 
 sp_oauth = SpotifyOAuth(
     client_id=SPOTIFY_CLIENT_ID,
@@ -15,7 +13,6 @@ sp_oauth = SpotifyOAuth(
     scope=SPOTIFY_SCOPE,
     show_dialog=True
 )
-
 
 sp_public = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIFY_CLIENT_ID ,
