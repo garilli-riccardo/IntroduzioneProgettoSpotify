@@ -1,0 +1,278 @@
+/* Reset del margine e padding per tutti gli elementi */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Impostazioni globali per il body */
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #121212;
+    color: #FFFFFF;
+    padding-top: 50px;
+    overflow-x: hidden; /* Previene lo scorrimento orizzontale */
+    text-align: center;
+}
+
+/* Header */
+h1, h2, h3 {
+    color: #FFFFFF;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.8rem;
+}
+
+/* Layout container per la sezione principale */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Form di ricerca */
+form {
+    margin-bottom: 40px;
+}
+
+form input[type="text"] {
+    padding: 12px;
+    width: 60%;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #121212;
+    color: #FFFFFF;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+form button {
+    padding: 12px 20px;
+    background-color: #1DB954;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 20%;
+    display: inline-block;
+}
+
+form button:hover {
+    background-color: #1ED760;
+}
+
+/* Separazione tra sezioni con spazio e bordi */
+.section {
+    margin-bottom: 40px;
+}
+
+/* Sezione per la visualizzazione dei risultati della ricerca */
+.results ul {
+    list-style: none;
+    padding-left: 0;
+    text-align: left; /* Allinea i risultati a sinistra */
+}
+
+.results li {
+    background-color: #232323;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.results li img {
+    border-radius: 8px;
+    width: 100px;
+    height: 100px;
+    margin-right: 20px;
+}
+
+.results li a {
+    text-decoration: none;
+    color: #1DB954;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 10px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.results li a:hover {
+    color: #1ED760;
+}
+
+/* Layout della tabella per le playlist */
+table {
+    width: 80%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: #232323;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+table, th, td {
+    border: 1px solid #333;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: center;
+}
+
+th {
+    background-color: #181818;
+    color: #B3B3B3;
+}
+
+tbody tr:hover {
+    background-color: #333;
+}
+
+tbody tr {
+    background-color: #232323;
+}
+
+td img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+}
+
+/* Pulsanti per le playlist */
+.btn {
+    background-color: #1DB954;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn:hover {
+    background-color: #1ED760;
+}
+
+.btn-primary {
+    background-color: #1DB954;
+}
+
+.btn-primary:hover {
+    background-color: #1ED760;
+}
+
+/* Pulsante di Logout con contorno bianco e separato */
+.auth-buttons {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.auth-buttons a {
+    background-color: transparent;
+    color: white;
+    padding: 12px 30px;
+    text-decoration: none;
+    border: 2px solid white;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 20px;
+    display: inline-block;
+}
+
+.auth-buttons a:hover {
+    background-color: #1DB954;
+    color: white;
+}
+
+/* Sezione per le informazioni degli album */
+.album-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #181818;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.album-info img {
+    width: 250px;
+    height: 250px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.album-info p {
+    color: #B3B3B3;
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+/* Sezione tracce dell'album */
+ul.list-group {
+    margin-top: 20px;
+    padding-left: 0;
+    list-style: none;
+}
+
+ul.list-group li {
+    background-color: #232323;
+    color: #B3B3B3;
+    font-size: 1.2rem;
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+}
+
+ul.list-group li:hover {
+    background-color: #333;
+}
+
+ul.list-group li:last-child {
+    border-bottom: none;
+}
+
+/* Aggiunta di margini per migliorare la leggibilità della Home Page */
+.home-container {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 50px;
+}
+
+.home-container h1,
+.home-container h2 {
+    margin-bottom: 20px;
+}
+
+/* Assicurarsi che gli elementi non si sovrappongano */
+section {
+    margin-bottom: 50px;
+}
+
+/* Aggiungere margine laterale per separare la barra laterale dal contenuto principale */
+.main-content {
+    margin-left: 240px; /* Larghezza della sidebar fissa */
+    padding-top: 50px;
+}

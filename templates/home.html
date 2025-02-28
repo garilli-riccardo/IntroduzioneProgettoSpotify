@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Home</title>
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    </head>
 <body>
     {% if user_info %}
         <h1>Benvenuto, {{ user_info['display_name'] }}!</h1>
@@ -31,11 +32,13 @@
                             <img src="{{ playlist['images'][0]['url'] }}" width="100">
                         {% endif %}
     
-                        {% if playlist.get('external_urls') and playlist['external_urls'].get('spotify') %}
-                            <p><a href="{{ playlist['external_urls']['spotify'] }}" target="_blank">Ascolta su Spotify</a></p>
-                        {% else %}
-                            <p>Link non disponibile</p>
-                        {% endif %}
+                        <!-- Bottone Visualizza Brani -->
+                        <p>
+                            <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary">
+                                Visualizza Brani
+                            </a>
+                        </p>
+    
                     </li>
                     {% endif %}
                 {% endfor %}
@@ -69,7 +72,9 @@
                         Nessuna immagine
                         {% endif %}
                     </td>
-                    <td><a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}">Visualizza brani</a></td>
+                    <td>
+                        <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary">Visualizza Brani</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -80,5 +85,5 @@
         <a href="{{ url_for('auth.login') }}">Login</a>
         {% endif %}
     {% endif %}
-
-    
+</body>
+</html>
