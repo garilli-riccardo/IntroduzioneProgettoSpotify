@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
 import spotipy
-from services.spotify_oauth import sp_public, get_spotify_object, sp_oauth
+from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_user_playlists
 import requests
 
 home_bp = Blueprint('home', __name__)
@@ -9,14 +9,7 @@ home_bp = Blueprint('home', __name__)
 @home_bp.route('/')
 def homepage():
     token_info = session.get('token_info', None)
-    if token_info:
-        sp = spotipy.Spotify(auth=token_info['access_token'])
-        user_info = sp.current_user()
-        playlists = sp.current_user_playlists()['items']
-    else:
-        user_info = None 
-        playlists = None 
-
+    playlists = get_user_playlists(token_info= None)
     return render_template('home.html', user_info=user_info, playlists=playlists)
 
 @home_bp.route('/playlist.html/<playlist_id>')
