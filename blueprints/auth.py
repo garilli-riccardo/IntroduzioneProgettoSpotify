@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, request, url_for, session
+
 from services.spotify_api import sp_oauth
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -14,6 +15,9 @@ def login():
 def logout():
     session.clear() 
     return redirect(url_for('home.homepage'))
+
+
+
 
 @auth_bp.route('/callback')
 def callback():

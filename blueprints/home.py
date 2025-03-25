@@ -2,6 +2,9 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 import spotipy
 from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_user_playlists
 import requests
+import pandas as pd
+import plotly.express as px
+
 
 home_bp = Blueprint('home', __name__)
 
@@ -79,6 +82,56 @@ def artistinfo(artist_id):
         "albums": [{"name": album["name"], "image": album["images"][0]['url']} for album in albums[:3]],
     }
     return render_template('artistinfo.html', artist_data=artist_data)
+
+
+
+
+def playlist_analysis():
+    message = ""
+    user_id = current_user.id
+    
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute('''SELECT p.id, p.name, p.image FROM playlists p
+                          JOIN user_playlists up ON p.id = up.playlist_id
+                          WHERE up.user_id = %s''', (user_id,))
+        playlists = cursor.fetchall()
+    
+    if not playlists:
+        message = "Non hai playlist salvate."
+        return render_template('playlist_analysis.html', message=message)
+    
+    tracks_data = []
+    for playlist in playlists:
+        cursor.execute('''SELECT t.track_name, t.artist_name, t.album_name, t.genre FROM tracks t
+                          JOIN playlist_tracks pt ON t.id = pt.track_id
+                          WHERE pt.playlist_id = %s''', (playlist['id'],))
+        tracks = cursor.fetchall()
+        
+        for track in tracks:
+            tracks_data.append(track)
+    
+    conn.close()
+    
+    if not tracks_data:
+        message = "Le playlist non contengono tracce."
+        return render_template('playlist_analysis.html', message=message)
+    
+    df = pd.DataFrame(tracks_data)
+    top_artists = df['artist_name'].value_counts().head(5)
+    top_albums = df['album_name'].value_counts().head(5)
+    genre_distribution = df['genre'].value_counts()
+    
+    artist_fig = px.bar(top_artists, x=top_artists.index, y=top_artists.values, labels={'x': 'Artista', 'y': 'Numero di brani'})
+    album_fig = px.bar(top_albums, x=top_albums.index, y=top_albums.values, labels={'x': 'Album', 'y': 'Numero di brani'})
+    genre_fig = px.pie(genre_distribution, names=genre_distribution.index, values=genre_distribution.values, title='Distribuzione dei generi musicali')
+    
+    return render_template('playlist_analysis.html', artist_fig=artist_fig.to_html(), album_fig=album_fig.to_html(), genre_fig=genre_fig.to_html(), message=message)
+
+
+
+
+
 '''
 def get_related_artists(artist_id):
     
