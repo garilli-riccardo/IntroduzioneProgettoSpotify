@@ -79,6 +79,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        <a href="{{ url_for('home.playlist_analysis') }}">Analizza le tue playlist</a>
         <a href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}
         <p>Non hai playlist disponibili.</p>
