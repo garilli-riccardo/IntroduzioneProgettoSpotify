@@ -4,7 +4,7 @@ from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_us
 import requests
 import pandas as pd
 import plotly.express as px
-
+import mypysql
 
 home_bp = Blueprint('home', __name__)
 
@@ -83,7 +83,54 @@ def artistinfo(artist_id):
     }
     return render_template('artistinfo.html', artist_data=artist_data)
 
+def view_saved_playlists():
 
+    sp = get_spotify_client()
+    playlists = []
+    message = ""
+
+    if current_user.is_authenticated:
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT playlist_id FROM saved_playlists WHERE user_id = %s', (current_user.id,))
+                rows = cursor.fetchall()
+            conn.close()
+            playlist_ids = [row['playlist_id'] for row in rows]
+        except Exception as e:
+            message = f"Errore nel recupero delle playlist salvate: {e}"
+            playlist_ids = []
+    else:
+        playlist_ids = session.get('saved_playlists', [])
+
+    # Recupera dettagli playlist da Spotify
+    for pid in playlist_ids:
+        try:
+            playlists.append(sp.playlist(pid))
+        except Exception as e:
+            message = f"Errore nel recupero della playlist {pid}: {e}"
+
+    return render_template('saved_playlists.html', playlists=playlists, message=message)
+
+# Rotta per visualizzare i preferiti
+@app.route('/favorites')
+def view_favorites():
+
+    message = ""
+    favorite_playlists = session.get('favorite_playlists', [])
+
+    if not favorite_playlists:
+        message = "Non hai playlist preferite salvate."
+
+    return render_template('favorites.html', favorite_playlists=favorite_playlists, message=message)
+
+# Rotta per rimuovere una playlist dai preferiti
+@app.route('/remove_from_favorites/<playlist_id>')
+def remove_from_favorites(playlist_id):
+    """Rimuove una playlist dai preferiti."""
+    favorite_playlists = session.get('favorite_playlists', [])
+    session['favorite_playlists'] = [p for p in favorite_playlists if p['id'] != playlist_id]
+    return redirect(url_for('home.view_favorites'))
 
 
 def playlist_analysis():
