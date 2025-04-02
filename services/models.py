@@ -1,91 +1,93 @@
 import pymmsql
+import sqlite3
 import os
 class database:
 
+    def __init__(self , db_file='db.sqlite'):
+        self.db_path = os.path.join(os.path.dirname(__file__), db_name)
+        self.create_tables()
 
-
-    def __init__(self,server="192.168.40.19\\SQLexpress",user="utente116DB",password="Cs8Fwvpz",database="Utente116.DB"):
-        self._server=server
-        self._user=user
-        self._password=password
-        self._database=database
 
 
     def connessione(self):
-        try:
-            WrapperDbSuola.conn=pymssql.connect(server=self._server, user=self._user, password=self._password,database=self._database)
-            print("connessione al db riscita")
-            return WrapperDbSuola.conn
-        
-        except:
-            return 0
-
-
-
-
-    def disconnetti(self):
-        try:
-            WrapperDbSuola.conn.close()
-            print("disconnessione al db avvenuta con successo")
-            
-        except:
-            print("errore durante la disconessione al database")
-
-
-    def createUser(self):
-        c=self.connessione()
-        try:
-            q="""
-                if not exist(
-                    select * from sysobject
-                    Where xtype ='U' and nome ='user')
-
-
-                CREATE TABLE user(
-                id_s int primary key
-                username varchar(100) not null
-                password varchar(200) not null
-                id_p int not null
-                foreign key (id_p) REFERENCES users(id_p) on delete cascade,
-
-                );
-
-                """
-            curs=c.cursor()
-            curs.execute(q)
-            c.commit()
-        except pymssql.error as e:
-            print(f"errore: {e}")
-
+        return sqlite3.connect(self.db_path)
     
     
     
     
-    def createPlaylist(self):
-        c=self.connessione()
-        try:
-            q="""
-                if not exist(
-                    select * from sysobject
-                    Where xtype ='U' and nome ='playlist')
+    def create_tables(self):
+        conn = self.connessione()
+        cursor = conn.cursor()
+
+        # Crea la tabella user (con idps come chiave esterna)
+        cursor.execute('''CREATE TABLE IF NOT EXISTS user (
+                            nome TEXT NOT NULL,
+                            idu INTEGER PRIMARY KEY AUTOINCREMENT,
+                            password TEXT NOT NULL,
+                            idps INTEGER,
+                            FOREIGN KEY(idps) REFERENCES playlist_salvate(idps)
+                          )''')
+
+        # Crea la tabella playlist_salvate
+        cursor.execute('''CREATE TABLE IF NOT EXISTS playlist_salvate (
+                            nome TEXT NOT NULL,
+                            idps INTEGER PRIMARY KEY AUTOINCREMENT
+                          )''')
+
+        conn.commit()
+        conn.close()
 
 
-                CREATE TABLE user(
-                id_p int primary key
-                nome_plalist varchar(100) not null
-                immagine varchar(255) not null
-                id_s int not null
-                foreign key (id_s) REFERENCES users(id_s) on delete cascade,
 
-                );
+            def insert_user(self, nome, password, idps=None):
+        conn = self.connessione()
+        cursor = conn.cursor()
 
-                """
-            curs=c.cursor()
-            curs.execute(q)
-            c.commit()
-        except pymssql.error as e:
-            print(f"errore: {e}")
+        cursor.execute('''
+            INSERT INTO user (nome, password, idps)
+            VALUES (?, ?, ?)
+        ''', (nome, password, idps))
 
+        conn.commit()
+        conn.close()
+
+    def insert_playlist_salvata(self, nome):
+        conn = self.connessione()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            INSERT INTO playlist_salvate (nome)
+            VALUES (?)
+        ''', (nome,))
+
+        conn.commit()
+        conn.close()
+
+
+
+        def get_user_by_id(self, user_id):
+        conn = self.connessione()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT * FROM user WHERE idu = ?
+        ''', (user_id,))
+        user = cursor.fetchone()
+
+        conn.close()
+        return user
+
+    def get_playlist_salvata_by_idps(self, idps):
+        conn = self.connessione()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT * FROM playlist_salvate WHERE idps = ?
+        ''', (idps,))
+        playlist = cursor.fetchone()
+
+        conn.close()
+        return playlist
 
 
 """
