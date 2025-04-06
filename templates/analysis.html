@@ -1,21 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisi Playlist</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .graph-container {
+            margin-bottom: 40px;
+        }
+    </style>
 </head>
 <body>
     <h1>Analisi delle Playlist</h1>
 
-    <h2>Top 5 Artisti Più Presenti</h2>
-    {{ artist_graph | safe }}
+    <div class="graph-container">
+        <h2>Brani in comune</h2>
+        {{ similarity_chart | safe }}
+    </div>
 
-    <h2>Top 5 Album Più Presenti</h2>
-    {{ album_graph | safe }}
+    <div class="graph-container">
+        <h2>Artisti in comune</h2>
+        {{ artist_chart | safe }}
+    </div>
 
-    <h2>Distribuzione dei Generi Musicali</h2>
-    {{ genre_graph | safe }}
+    <div class="graph-container">
+        <h2>Popolarità media</h2>
+        {{ pop_chart | safe }}
+    </div>
+
+    <div class="graph-container">
+        <h2>Confronto dei generi musicali</h2>
+        {{ genre_chart | safe }}
+    </div>
+
+    <div class="graph-container">
+        <h2>Distribuzione temporale dei brani</h2>
+        {{ time_chart | safe }}
+    </div>
+
+    <div class="graph-container">
+        <h2>Top 5 Artisti Più Presenti</h2>
+        {{ top_artists_chart | safe }}
+    </div>
+
+    <div class="graph-container">
+        <h2>Top 5 Album Più Presenti</h2>
+        {{ top_albums_chart | safe }}
+    </div>
+
+    <div class="graph-container">
+        <h2>Top 5 Generi Musicali</h2>
+        {{ top_genres_chart | safe }}
+    </div>
+
     <a href="{{ url_for('home.homepage') }}" class="btn btn-primary">Torna alla Home</a>
 </body>
 </html>

@@ -1,6 +1,5 @@
 
-from flask import Blueprint, render_template, session, redirect, url_for, request
-from flask_login import login_required
+
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import spotipy
@@ -181,7 +180,16 @@ def artistinfo(artist_id):
  
  
  
- 
+@home_bp.route('/remove_single_playlist', methods=['POST'])
+@login_required
+def remove_single_playlist():
+    playlist_id = request.form.get('playlist_id')
+    if playlist_id:
+        db.execute_query('DELETE FROM Playlist WHERE id_p = ? AND nickname = ?', (playlist_id, current_user.nickname))
+        flash('Playlist rimossa con successo!')
+    else:
+        flash('Errore: Playlist non trovata.')
+    return redirect(url_for('home.homepage'))
  
  
  

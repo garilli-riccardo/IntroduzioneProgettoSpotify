@@ -7,9 +7,6 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <form action="{{ url_for('home.remove_playlist') }}" method="post" class="d-inline-block mt-2">
-        <button type="submit" class="btn btn-danger btn-sm w-100">Rimuovi Playlist</button>
-    </form>
 
     {% if user_sp %}
         <h1>Benvenuto, {{ user_sp['display_name'] }}! Sei loggato con Spotify.</h1>
@@ -18,15 +15,15 @@
     {% else %}
         <h1>Benvenuto, esplora le playlist!</h1>
     {% endif %}
-    
+
     <form action="{{ url_for('home.cerca') }}" method="get">
         <input type="text" name="query" placeholder="Cerca una playlist..." required value="{{ request.args.get('query', '') }}">
         <button type="submit">Cerca</button>
     </form>
-    
+
     {% if request.args.get('query') %}
         <p>Risultati per: <strong>{{ request.args.get('query', '') }}</strong></p>
-    
+
         {% if results %}
             <ul>
                 {% for playlist in results %}
@@ -37,13 +34,13 @@
                         {% if playlist.get('images') %}
                             <img src="{{ playlist['images'][0]['url'] }}" width="100">
                         {% endif %}
-                        
+
                         <form action="{{ url_for('home.saved_playlist') }}" method="post">
                             <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
                             <input type="hidden" name="playlist_name" value="{{ playlist.name }}">
                             <button type="submit" class="btn btn-warning">Aggiungi ai Preferiti</button>
                         </form>
-                        <!-- Bottone Visualizza Brani -->
+
                         <p>
                             <a href="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" class="btn btn-primary">
                                 Visualizza Brani
@@ -57,6 +54,7 @@
             <p>Nessuna playlist trovata.</p>
         {% endif %}
         <p><a href="{{ url_for('home.homepage') }}">Torna alla Home</a></p>
+
     {% else %}
         <h2>Le tue Playlist:</h2>
         {% if playlists %}
@@ -68,6 +66,7 @@
                     <th>Copertina</th>
                     <th>Visualizza Brani</th>
                     <th>Preferiti</th>
+                    <th>Elimina</th>
                 </tr>
             </thead>
             <tbody>
@@ -90,7 +89,14 @@
                     <td>
                         <form action="{{ url_for('home.saved_playlist') }}" method="post">
                             <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                            <input type="hidden" name="playlist_name" value="{{ playlist['name'] }}">
                             <button type="submit" class="btn btn-warning">Aggiungi ai Preferiti</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('home.remove_single_playlist') }}" method="post">
+                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                            <button type="submit" class="btn btn-danger">Elimina</button>
                         </form>
                     </td>
                 </tr>
@@ -99,14 +105,20 @@
         </table>
         {% endif %}
     {% endif %}
+
+    <form action="{{ url_for('home.remove_playlist') }}" method="post" class="d-inline-block mt-2">
+        <button type="submit" class="btn btn-danger btn-sm w-100">Rimuovi Tutte le Playlist</button>
+    </form>
+
     <a href="{{ url_for('analysis.playlist_analysis') }}" class="button-link">
         Vai all'Analisi Playlist
     </a>
-    <!-- Condizione per gestire il login/logout -->
+
     {% if user_sp %}
-        <p>Ciao, {{ user_sp['display_name'] }}! <a href="{{ url_for('auth.logout') }}">Logout da spotify</a></p>
+        <p>Ciao, {{ user_sp['display_name'] }}! <a href="{{ url_for('auth.logout') }}">Logout da Spotify</a></p>
     {% else %}
         <p><a href="{{ url_for('auth.login') }}">Accedi con Spotify</a></p>
     {% endif %}
+
 </body>
 </html>
