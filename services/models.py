@@ -1,129 +1,95 @@
-import pymmsql
 import sqlite3
 import os
-class database:
 
-    def __init__(self , db_file='db.sqlite'):
-        self.db_path = os.path.join(os.path.dirname(__file__), db_name)
-        self.create_tables()
+class DatabaseWrapper:
+    def __init__(self, db_file='SpotifyDB.db'):
+        # Il file del database SQLite sarà nella cartella di progetto
+        self.db_file = db_file
+        self.create_tables()  # Creazione delle tabelle all'avvio
 
+    def connect(self):
+        # Connetti al database SQLite
+        return sqlite3.connect(self.db_file)
 
+    def execute_query(self, query, params=()):
+        conn = self.connect()
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            conn.commit()
 
-    def connessione(self):
-        return sqlite3.connect(self.db_path)
-    
-    
-    
-    
+    def fetch_query(self, query, params=()):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        conn.close()
+        return result
+
     def create_tables(self):
-        conn = self.connessione()
-        cursor = conn.cursor()
+        self.create_table_Utente()
+        self.create_table_playlist()
 
-        # Crea la tabella user (con idps come chiave esterna)
-        cursor.execute('''CREATE TABLE IF NOT EXISTS user (
-                            nome TEXT NOT NULL,
-                            idu INTEGER PRIMARY KEY AUTOINCREMENT,
-                            password TEXT NOT NULL,
-                            idps INTEGER,
-                            FOREIGN KEY(idps) REFERENCES playlist_salvate(idps)
-                          )''')
+    def create_table_Utente(self):
+        self.execute_query(''' 
+            CREATE TABLE IF NOT EXISTS Utente (
+                nickname TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL,
+                PRIMARY KEY (nickname)
+            )
+        ''')
 
-        # Crea la tabella playlist_salvate
-        cursor.execute('''CREATE TABLE IF NOT EXISTS playlist_salvate (
-                            nome TEXT NOT NULL,
-                            idps INTEGER PRIMARY KEY AUTOINCREMENT
-                          )''')
+    def create_table_playlist(self):
+        self.execute_query(''' 
+            CREATE TABLE IF NOT EXISTS Playlist (
+                id_p TEXT PRIMARY KEY,
+                nickname TEXT NOT NULL UNIQUE,
+                FOREIGN KEY (nickname) REFERENCES Utente(utente) ON DELETE CASCADE
+            )
+        ''')
 
-        conn.commit()
-        conn.close()
+    def get_Utente(self):
+        return self.fetch_query('SELECT * FROM Utente')
 
+    def get_Playlist(self):
+        return self.fetch_query('SELECT * FROM Playlist')
 
+    def aggiungi_Utente(self, nickname, password):
+        self.execute_query('INSERT INTO Utente (nickname, password) VALUES (?, ?)', (nickname, password))
 
-            def insert_user(self, nome, password, idps=None):
-        conn = self.connessione()
-        cursor = conn.cursor()
+    def aggiungi_Playlist(self, id_p, id_u):
+        self.execute_query('INSERT INTO Playlist (id_p, id_u) VALUES (?, ?)', (id_p, id_u))
 
-        cursor.execute('''
-            INSERT INTO user (nome, password, idps)
-            VALUES (?, ?, ?)
-        ''', (nome, password, idps))
+    def rimuovi_Playlist(self, indice):
+        self.execute_query('DELETE FROM Playlist WHERE id_p = ?', (indice,))
 
-        conn.commit()
-        conn.close()
+    def rimuovi_Utente(self, indice):
+        self.execute_query('DELETE FROM Utente WHERE id_u = ?', (indice,))
 
-    def insert_playlist_salvata(self, nome):
-        conn = self.connessione()
-        cursor = conn.cursor()
+    def svuota_Utente(self):
+        self.execute_query('DELETE FROM Utente')
 
-        cursor.execute('''
-            INSERT INTO playlist_salvate (nome)
-            VALUES (?)
-        ''', (nome,))
-
-        conn.commit()
-        conn.close()
+    def svuota_Playlist(self):
+        self.execute_query('DELETE FROM Playlist')
 
 
+db = DatabaseWrapper(db_file="SpotifyDB.db")  # Crea un'istanza globale qui
 
-        def get_user_by_id(self, user_id):
-        conn = self.connessione()
-        cursor = conn.cursor()
+from flask_login import UserMixin
 
-        cursor.execute('''
-            SELECT * FROM user WHERE idu = ?
-        ''', (user_id,))
-        user = cursor.fetchone()
+class User(UserMixin):
+    def __init__(self, nickname):
+        self.nickname = nickname
 
-        conn.close()
-        return user
+    @staticmethod
+    def get(user_id):
+        # Recupera l'utente dal database in base al nickname
+        utenti = db.get_Utente()
+        user_data = next((u for u in utenti if u[0] == user_id), None)
+        if user_data:
+            return User(nickname=user_data[0])  # Restituisce un'istanza di User con il nickname
+        return None
 
-    def get_playlist_salvata_by_idps(self, idps):
-        conn = self.connessione()
-        cursor = conn.cursor()
-
-        cursor.execute('''
-            SELECT * FROM playlist_salvate WHERE idps = ?
-        ''', (idps,))
-        playlist = cursor.fetchone()
-
-        conn.close()
-        return playlist
-
-
-"""
-    def get_db_connection():
-        return pymysql.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            database=DB_NAME,
-            cursorclass=pymysql.cursors.DictCursor
-        )
-
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'login'
-
-    # Creazione delle tabelle utenti, playlist e relazione molti-a-molti
-    with get_db_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                username VARCHAR(80) UNIQUE NOT NULL,
-                                password VARCHAR(120) NOT NULL)''')
-            
-            cursor.execute('''CREATE TABLE IF NOT EXISTS playlists (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                name VARCHAR(255) NOT NULL,
-                                image VARCHAR(255))''')
-            
-            cursor.execute('''CREATE TABLE IF NOT EXISTS user_playlists (
-                                user_id INT,
-                                playlist_id INT,
-                                PRIMARY KEY (user_id, playlist_id),
-                                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                                FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE)''')
-            
-            connection.commit()
-
-"""
+    def get_id(self):
+        # Restituisce l'identificativo dell'utente, che nel nostro caso è il nickname
+        return self.nickname

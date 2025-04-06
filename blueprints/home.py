@@ -4,14 +4,13 @@ from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_us
 import requests
 import pandas as pd
 import plotly.express as px
-from . import spotify, get_db_connection
 import mypysql
 
 
 home_bp = Blueprint('home', __name__)
 
 
-@home_bp.route('/')
+@home_bp.route('/homepage')
 def homepage():
     token_info = session.get('token_info', None)
     playlists = get_user_playlists(token_info= None)
@@ -19,6 +18,7 @@ def homepage():
 
 @home_bp.route('/playlist.html/<playlist_id>')
 def playlist_tracks(playlist_id):
+    
     session['current_playlist_id'] = playlist_id
     token_info = session.get('token_info',None)
     if not token_info:

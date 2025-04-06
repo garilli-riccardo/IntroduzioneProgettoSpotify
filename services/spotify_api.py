@@ -8,8 +8,8 @@ SPOTIFY_CLIENT_SECRET = "97fb37e2c66a4629ae529ccbf5412ac0"
 SPOTIFY_REDIRECT_URI = "https://5000-garilliricc-introduzion-yma8atev1hy.ws-eu118.gitpod.io/callback" 
 SPOTIFY_SCOPE = "user-read-private user-read-email playlist-read-private"
 
-login_manager = LoginManager()
-login_manager.init_app(app)
+""" login_manager = LoginManager()
+login_manager.init_app(app) """
 
 sp_oauth = SpotifyOAuth(
     client_id=SPOTIFY_CLIENT_ID,
@@ -25,9 +25,51 @@ sp_public = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
 ))
 
 def get_spotify_object(token_info=None):
-    if token_info:
-        return spotipy.Spotify(auth=token_info['access_token'])
-    return sp_public  
+    return spotipy.Spotify(auth=token_info['access_token']) if token_info else sp_public
 
-def get_user_playlists(token_info=None):
-    return sp.get_spotify_object(token_info = None).current_user_playlists[items]
+def get_user_info(token_info):
+    return get_spotify_object(token_info).current_user()
+
+def get_user_playlists(token_info):
+    return get_spotify_object(token_info).current_user_playlists()['items']
+
+def get_playlist_tracks(token_info, playlist_id):
+    try:
+        response = get_spotify_object(token_info).playlist_tracks(playlist_id)
+        return response.get('items', []) if response else [] 
+    except Exception as e:
+        print(f"Errore nel recupero dei brani della playlist {playlist_id}: {e}")
+        return [] 
+
+def get_track_details(token_info, track_id):
+    sp = get_spotify_object(token_info)
+    track = sp.track(track_id)
+    artist_details = sp.artist(track['artists'][0]['id'])
+    
+    genres = artist_details.get('genres', [])
+    if genres:
+        genre = genres[0]
+    else:
+        genre = 'Genere sconosciuto'
+
+    return track, genre
+
+def get_all_tracks(token_info):
+    sp = get_spotify_object(token_info)
+    playlists = get_user_playlists(token_info)
+    tracks_data = []
+    
+    for playlist in playlists:
+        playlist_id = playlist['id']
+        tracks = get_playlist_tracks(token_info, playlist_id)
+        
+        for track in tracks:
+            track_info = track['track']
+            tracks_data.append({
+                'track_name': track_info['name'],
+                'artist': track_info['artists'][0]['name'],
+                'album': track_info['album']['name'],
+                'genre': track_info['album'].get('genres', ['Sconosciuto'])[0]
+            })
+    
+    return pd.DataFrame(tracks_data)

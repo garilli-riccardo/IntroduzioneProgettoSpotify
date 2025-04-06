@@ -1,0 +1,6 @@
+flask
+flask_login
+sqlite3
+pandas
+mathplotlib
+spotipy
