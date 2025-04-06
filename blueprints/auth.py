@@ -13,7 +13,8 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
-    session.clear() 
+    session.pop('token_info', None)
+    session.pop('spotify_username', None)
     return redirect(url_for('home.homepage'))
 
 
@@ -25,3 +26,4 @@ def callback():
     token_info = sp_oauth.get_access_token(code)
     session['token_info'] = token_info
     return redirect(url_for('home.homepage')) 
+
