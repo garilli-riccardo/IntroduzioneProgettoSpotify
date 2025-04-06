@@ -56,13 +56,13 @@ def playlist_analysis():
     album_count.columns = ['Album', 'Count']
 
     # Analisi: Distribuzione dei generi musicali
-    genre_count = df.explode('genres')['genres'].value_counts().reset_index()
+    genre_count = df.explode('genres')['genres'].value_counts().head(5).reset_index()
     genre_count.columns = ['Genre', 'Count']
 
     # Creiamo i grafici
     artist_graph = px.bar(artist_count, x='Artist', y='Count', title='Top 5 Artisti Più Presenti')
     album_graph = px.bar(album_count, x='Album', y='Count', title='Top 5 Album Più Presenti')
-    genre_graph = px.pie(genre_count, names='Genre', values='Count', title='Distribuzione dei Generi Musicali')
+    genre_graph = px.pie(genre_count, names='Genre', values='Count', title='Distribuzione dei 5 Generi Musicali più ascoltati')
 
     # Convertiamo i grafici in HTML
     artist_graph_html = artist_graph.to_html(full_html=False)
