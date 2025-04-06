@@ -99,6 +99,9 @@
         </table>
         {% endif %}
     {% endif %}
+    <a href="{{ url_for('analysis.playlist_analysis') }}" class="button-link">
+        Vai all'Analisi Playlist
+    </a>
     <!-- Condizione per gestire il login/logout -->
     {% if user_sp %}
         <p>Ciao, {{ user_sp['display_name'] }}! <a href="{{ url_for('auth.logout') }}">Logout da spotify</a></p>

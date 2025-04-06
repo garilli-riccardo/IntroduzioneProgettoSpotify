@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisi Playlist</title>
+</head>
+<body>
+    <h1>Analisi delle Playlist</h1>
+
+    <h2>Top 5 Artisti Più Presenti</h2>
+    {{ artist_graph | safe }}
+
+    <h2>Top 5 Album Più Presenti</h2>
+    {{ album_graph | safe }}
+
+    <h2>Distribuzione dei Generi Musicali</h2>
+    {{ genre_graph | safe }}
+    <a href="{{ url_for('home.homepage') }}" class="btn btn-primary">Torna alla Home</a>
+</body>
+</html>

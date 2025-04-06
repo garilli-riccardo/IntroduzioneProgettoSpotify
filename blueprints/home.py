@@ -25,14 +25,12 @@ def homepage():
     saved_playlists = []
 
     if token_info and not current_user.is_authenticated:
-        # Solo Spotify
         sp = get_spotify_object(token_info)
         user_sp = get_user_info(token_info)
         playlists = get_user_playlists(token_info)
         user_info = {'display_name': user_sp['display_name']}
 
     elif current_user.is_authenticated and not token_info:
-        # Solo autenticato su Flask
         user_info = {'display_name': current_user.nickname}
         saved_playlists = db.fetch_query('SELECT * FROM Playlist WHERE nickname = ?', (current_user.nickname,))
         for saved in saved_playlists:
@@ -54,7 +52,6 @@ def homepage():
             playlist_id = saved[0]
             try:
                 playlist_data = sp_public.playlist(playlist_id)
-                # Evita duplicati (es. se la playlist è già tra quelle Spotify)
                 if not any(pl['id'] == playlist_data['id'] for pl in playlists):
                     playlists.append(playlist_data)
             except Exception as e:

@@ -1,7 +1,5 @@
 flask
-flask_login
-sqlite3
+flask-login
 pandas
 plotly
-mathplotlib
 spotipy
