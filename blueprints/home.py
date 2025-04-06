@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
+from flask_login import login_required
 import spotipy
 from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_user_playlists
 import requests
@@ -13,8 +14,23 @@ home_bp = Blueprint('home', __name__)
 @home_bp.route('/homepage')
 def homepage():
     token_info = session.get('token_info', None)
-    playlists = get_user_playlists(token_info= None)
+
+    if token_info:
+        sp = get_spotify_object(token_info)
+        user_info = sp.current_user()
+        playlists = sp.current_user_playlists()['items']
+    else:
+        user_info = None
+        playlists = None
+
     return render_template('home.html', user_info=user_info, playlists=playlists)
+
+def save_playlist(user_id, playlist_id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute('''INSERT INTO user_playlists (user_id, playlist_id) VALUES (%s, %s)''', (user_id, playlist_id))
+        conn.commit()
+    conn.close()
 
 @home_bp.route('/playlist.html/<playlist_id>')
 def playlist_tracks(playlist_id):
@@ -49,6 +65,20 @@ def cerca():
     playlists = results['playlists']['items']
     return render_template('home.html', user_info=user_info, results=playlists)
 
+@home_bp.route('/visualizza_brani/<playlist_id>')
+def visualizza_brani(playlist_id):
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return redirect(url_for('auth.login'))
+
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    
+    # Ottenere i dettagli della playlist per estrarre il nome
+    playlist = sp.playlist(playlist_id)  
+    tracks = playlist['tracks']['items']
+    playlist_name = playlist['name']
+
+    return render_template('brani.html', tracks=tracks, playlist_name=playlist_name)
 
 @home_bp.route('/albuminfo/<album_id>', methods=['GET'])
 def albuminfo(album_id):
@@ -85,12 +115,8 @@ def artistinfo(artist_id):
     }
     return render_template('artistinfo.html', artist_data=artist_data)
 
-def save_playlist(user_id, playlist_id):
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('''INSERT INTO user_playlists (user_id, playlist_id) VALUES (%s, %s)''', (user_id, playlist_id))
-        conn.commit()
-    conn.close()
+
+
 
 def view_saved_playlists():
     sp = get_spotify_client()

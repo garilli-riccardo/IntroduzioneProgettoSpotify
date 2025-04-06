@@ -2,5 +2,6 @@ flask
 flask_login
 sqlite3
 pandas
+plotly
 mathplotlib
 spotipy

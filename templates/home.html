@@ -67,16 +67,23 @@
                     <td>{{ playlist['tracks']['total'] }}</td>
                     <td>
                         {% if playlist['images'] %}
-                        <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                            <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
                         {% else %}
-                        Nessuna immagine
+                            Nessuna immagine
                         {% endif %}
                     </td>
                     <td>
                         <a href="{{ url_for('home.playlist_tracks', playlist_id=playlist['id']) }}" class="btn btn-primary">Visualizza Brani</a>
                     </td>
+                    <td>
+                        <form action="{{ url_for('home.save_playlist') }}" method="post">
+                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                            <button type="submit" class="btn btn-success">Salva Playlist</button>
+                        </form>
+                    </td>
                 </tr>
-                {% endfor %}
+            {% endfor %}
+            
             </tbody>
         </table>
         <a href="{{ url_for('home.playlist_analysis') }}">Analizza le tue playlist</a>

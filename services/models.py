@@ -3,12 +3,11 @@ import os
 
 class DatabaseWrapper:
     def __init__(self, db_file='SpotifyDB.db'):
-        # Il file del database SQLite sarà nella cartella di progetto
+
         self.db_file = db_file
-        self.create_tables()  # Creazione delle tabelle all'avvio
+        self.create_tables()  
 
     def connect(self):
-        # Connetti al database SQLite
         return sqlite3.connect(self.db_file)
 
     def execute_query(self, query, params=()):
@@ -83,13 +82,11 @@ class User(UserMixin):
 
     @staticmethod
     def get(user_id):
-        # Recupera l'utente dal database in base al nickname
         utenti = db.get_Utente()
         user_data = next((u for u in utenti if u[0] == user_id), None)
         if user_data:
-            return User(nickname=user_data[0])  # Restituisce un'istanza di User con il nickname
+            return User(nickname=user_data[0]) 
         return None
 
     def get_id(self):
-        # Restituisce l'identificativo dell'utente, che nel nostro caso è il nickname
         return self.nickname
