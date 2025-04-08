@@ -3,7 +3,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import spotipy
-from services.spotify_api import sp_public, get_spotify_object, sp_oauth, get_user_playlists
 import requests
 from services.spotify_api import (
     sp_public,
@@ -154,29 +153,32 @@ def albuminfo(album_id):
  
 @home_bp.route('/artistinfo/<artist_id>')
 def artistinfo(artist_id):
-     token_info = session.get('token_info')
- 
-     # Se loggato usa get_spotify_object, altrimenti sp_public
-     sp = get_spotify_object(token_info) if token_info else sp_public
- 
-     try:
-         artist = sp.artist(artist_id)
-         top_tracks = sp.artist_top_tracks(artist_id, country='IT')['tracks']
-         albums = sp.artist_albums(artist_id, album_type='album', country='IT')['items']
- 
-         artist_data = {
-             "name": artist['name'],
-             "genres": artist.get('genres', []),
-             "image": artist['images'][0]['url'] if artist['images'] else None,
-             "top_tracks": [{"name": track["name"], "preview_url": track["preview_url"]} for track in top_tracks[:5]],
-             "albums": [{"name": album["name"], "image": album["images"][0]['url']} for album in albums[:3]]
-         }
- 
-         return render_template('artistinfo.html', artist_data=artist_data)
- 
-     except Exception as e:
-         print(f"Errore nel recupero delle info dell'artista {artist_id}: {e}")
-         return redirect(url_for('home.homepage'))
+    token_info = session.get('token_info')
+
+    if token_info:
+        sp = get_spotify_object(token_info)
+    else:
+        sp = sp_public  # Accesso pubblico se non autenticato
+
+    try:
+        artist = sp.artist(artist_id)
+        top_tracks = sp.artist_top_tracks(artist_id, country='IT')['tracks']
+        albums = sp.artist_albums(artist_id, album_type='album', country='IT')['items']
+
+        # Preparazione dei dati dell'artista
+        artist_data = {
+            "name": artist['name'],
+            "genres": artist.get('genres', []),
+            "image": artist['images'][0]['url'] if artist['images'] else None,
+            "top_tracks": [{"name": track["name"], "preview_url": track["preview_url"]} for track in top_tracks], 
+            "albums": [{"name": album["name"], "image": album["images"][0]['url']} for album in albums]  
+        }
+
+        return render_template('artistinfo.html', artist_data=artist_data)
+
+    except Exception as e:
+        print(f"Errore nel recupero delle info dell'artista {artist_id}: {e}")
+        return redirect(url_for('home.homepage'))
  
  
  

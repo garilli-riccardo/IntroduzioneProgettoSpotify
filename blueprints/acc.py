@@ -43,8 +43,12 @@ def register_page():
             return redirect(url_for('local_login.register_page'))
 
         # Salviamo l'utente con password in chiaro
-        db.aggiungi_Utente(nickname, password)  # Salva la password in chiaro
+        db.aggiungi_Utente(nickname, password)   
         flash('Registrazione completata con successo!', 'success')
         return redirect(url_for('local_login.login_page'))
 
     return render_template('register.html')
+
+
+
+
