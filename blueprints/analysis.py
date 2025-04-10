@@ -73,10 +73,13 @@ def get_track_details(track_id):
         print(f"Errore recuperando dettagli per {track_id}: {e}")
         return {}
 
+
 @analysis_bp.route('/playlist_analysis')
+@login_required
 def playlist_analysis():
     # Recupera le playlist dell'utente
-    playlists = db.fetch_query('SELECT id_p FROM Playlist')
+    playlists = db.fetch_query('SELECT id_p FROM Playlist WHERE nickname = ?', (current_user.nickname,))
+
 
     if len(playlists) < 2:
         return "Sono necessarie almeno due playlist per effettuare l'analisi."

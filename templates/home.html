@@ -119,6 +119,6 @@
     {% else %}
         <p><a href="{{ url_for('auth.login') }}">Accedi con Spotify</a></p>
     {% endif %}
-
+    <a href="{{ url_for('local_login.local_logout') }}">Logout account locale</a>
 </body>
 </html>

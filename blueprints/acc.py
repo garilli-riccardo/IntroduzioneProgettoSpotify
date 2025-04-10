@@ -12,22 +12,26 @@ def login_page():
         username = request.form['nickname']
         password = request.form['password']
 
-        utenti = db.get_Utente()  # Ora puoi usare db perché è stato importato
-        user_data = next((u for u in utenti if u[0] == username), None)  # Cerca l'utente per nickname
-        
-        if user_data:
-            stored_nickname, stored_password = user_data  # stored_password è la password memorizzata
+        utenti = db.get_Utente()
+        user_data = next((u for u in utenti if u[0] == username), None)
 
-            if stored_password == password:  # Confronta direttamente le password
-                user = User(nickname=stored_nickname)  # Assumendo che User sia correttamente definito
+        if user_data:
+            stored_nickname, stored_password = user_data
+
+            if stored_password == password:
+                user = User(nickname=stored_nickname)
                 login_user(user)
-                flash("Login effettuato!", "success")
+                flash("Login effettuato con successo!", "success")
                 return redirect(url_for('home.homepage'))
-        
-        flash("Credenziali non valide.", "error")
+            else:
+                flash("Password errata.", "error")
+        else:
+            flash("Utente non trovato.", "error")
+
         return redirect(url_for('local_login.login_page'))
-    
+
     return render_template('login.html')
+
 
 
 @acc_bp.route('/register', methods=['GET', 'POST'])
@@ -49,6 +53,12 @@ def register_page():
 
     return render_template('register.html')
 
+from flask_login import logout_user
+
+@acc_bp.route('/local_logout')
+def local_logout():
+    logout_user() 
+    return redirect(url_for('local_login.login_page'))  
 
 
 
