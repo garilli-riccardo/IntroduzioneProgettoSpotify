@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confronto Playlist - {{ playlist_names[0] }} vs {{ playlist_names[1] }}</title>
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Circular', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1DB954;
+            padding: 1rem;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background-color: #181818;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .chart-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1DB954;
+        }
+        .buttons-container {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #1DB954;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #1aa34a;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Confronto: {{ playlist_names[0] }} vs {{ playlist_names[1] }}</h1>
+    </header>
+
+    <main>
+        <div class="chart-container">
+            <h2>Brani in comune</h2>
+            {{ similarity_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>Artisti in comune</h2>
+            {{ artist_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>Popolarità media</h2>
+            {{ pop_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>Confronto Generi Musicali</h2>
+            {{ genre_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            <h2>Distribuzione Temporale</h2>
+            {{ time_chart | safe }}
+        </div>
+
+        <div class="buttons-container">
+            <a class="btn" href="{{ url_for('analysis.seleziona_playlist') }}">Confronta altre Playlist</a>
+            <a class="btn" href="{{ url_for('home.homepage') }}">Torna alla Home</a>
+        </div>
+    </main>
+</body>
+</html>
+

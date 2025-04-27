@@ -1,5 +1,3 @@
-
-
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import spotipy
@@ -67,17 +65,30 @@ def homepage():
  
      return render_template('home.html', user_sp=user_sp, user_info=user_info, playlists=playlists)
  
-@home_bp.route('/cerca')
+@home_bp.route('/cerca', methods=['GET'])
 def cerca():
-     query = request.args.get('query', '')
-     results = []
-     if query:
-         try:
-             results = sp_public.search(q=query, type='playlist', limit=10)['playlists']['items']
-         except Exception as e:
-             flash('Errore nella ricerca delle playlist')
-             print(e)
-     return render_template('home.html', results=results, user_info=None, playlists=[])
+    query = request.args.get('query', '')
+    results = []
+    tracks = []
+    
+    if query:
+        try:
+            # Ricerca delle playlist su Spotify
+            results = sp_public.search(q=query, type='playlist', limit=10)['playlists']['items']
+            
+            # Se una playlist è selezionata, carica tutti i brani di quella playlist
+            playlist_id = request.args.get('playlist_id')
+            if playlist_id:
+                # Recupera tutti i brani della playlist
+                tracks_response = sp_public.playlist_tracks(playlist_id, limit=100)  # Modifica limit se necessario
+                tracks = tracks_response['items']
+            
+        except Exception as e:
+            flash('Errore nella ricerca delle playlist')
+            print(e)
+
+    return render_template('home.html', results=results, tracks=tracks, user_info=None, playlists=[])
+
  
 @home_bp.route('/saved_playlist', methods=['POST'])
 def saved_playlist():
@@ -94,7 +105,7 @@ def saved_playlist():
          flash('Playlist salvata con successo!')
      else:
          flash('Hai già salvato questa playlist.')
-     return redirect(url_for('home.homepage'))
+     return redirect(url_for('home.homepage', playlist_id = playlist_id))
  
 @home_bp.route('/remove_playlist', methods=['POST'])
 def remove_playlist():
@@ -105,24 +116,67 @@ def remove_playlist():
      flash('Tutte le playlist rimosse!')
      return redirect(url_for('home.homepage'))
  
-@home_bp.route('/visualizza_brani/<playlist_id>')
+@home_bp.route('/visualizza_brani/<playlist_id>', methods=['GET', 'POST'])
 def visualizza_brani(playlist_id):
-     token_info = session.get('token_info')
-     
-     if token_info:
-         sp = get_spotify_object(token_info)
-     else:
-         sp = sp_public  # Usa accesso pubblico se l'utente non ha fatto login a Spotify
- 
-     try:
-         playlist = sp.playlist(playlist_id)
-         tracks = playlist['tracks']['items']
-         playlist_name = playlist['name']
-         return render_template('brani.html', tracks=tracks, playlist_name=playlist_name)
-     except Exception as e:
-         print(f"Errore nel caricamento della playlist {playlist_id}: {e}")
-         return redirect(url_for('home.homepage'))  # Fallback in caso di errore
- 
+    token_info = session.get('token_info')
+    
+    query = request.args.get('query', '')  # Capture the search query from the URL
+        
+    if token_info:
+        sp = get_spotify_object(token_info)
+    else:
+        sp = sp_public  # Usa l'accesso pubblico se non sei loggato 
+    # Ottieni lo stato dell'offset dalla sessione
+    # backend: ricevi l'offset dalla sessione o dalla query
+    offset = session.get('offset', 0)  # recupera l'offset dalla sessione, o usa 0 se non è impostato
+    limit = 100  # numero massimo di brani da caricare per richiesta
+
+    response = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+
+
+# aggiorna l'offset per la prossima richiesta
+    if len(response['items']) == limit:
+        session['offset'] = offset + limit
+    else:
+        session['offset'] = 0  # resetto quando non ci sono più brani
+
+
+    
+    try:
+        # Otteniamo i dettagli della playlist
+        playlist = sp.playlist(playlist_id)
+        playlist_name = playlist['name']
+        
+        # Otteniamo l'immagine della playlist
+        playlist_image = playlist['images'][0]['url'] if playlist['images'] else url_for('static', filename='img/default_playlist.png')
+
+        # Carica i brani in base all'offset
+        tracks = []
+        response = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+        tracks.extend(response['items'])
+
+        # Se il numero di brani restituiti è inferiore al limite, significa che siamo all'ultima pagina
+        has_more_tracks = len(response['items']) == limit
+
+        # Salviamo il nuovo offset (per il prossimo caricamento)
+        if has_more_tracks:
+            session['offset'] = offset + limit
+        else:
+            session['offset'] = 0  # Reset offset se siamo alla fine
+
+        return render_template('brani.html', 
+                               tracks=tracks, 
+                               playlist_name=playlist_name, 
+                               playlist_image=playlist_image, 
+                               query=query, 
+                               has_more_tracks=has_more_tracks)
+    
+    except Exception as e:
+        print(f"Errore nel caricamento della playlist: {e}")
+        return render_template('error.html', error_message="Si è verificato un errore.")
+
+
+
  
 @home_bp.route('/albuminfo/<album_id>')
 def albuminfo(album_id):
@@ -193,200 +247,60 @@ def remove_single_playlist():
         flash('Errore: Playlist non trovata.')
     return redirect(url_for('home.homepage'))
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-"""
- 
- def tokenpubblico():
-     sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
-     client_id=SPOTIFY_CLIENT_ID,
-     client_secret=SPOTIFY_CLIENT_SECRET
-     ))
- 
- home_bp = Blueprint('home', __name__)
- 
- 
- 
- @home_bp.route('/remove_playlist', methods=['POST'])
- def remove_playlist():
-     if not current_user.is_authenticated:
-         return redirect(url_for('home.homepage'))
-      
-      # Rimuovi la playlist dal database
-     db.svuota_Playlist
-      
-     return redirect(url_for('home.homepage'))
- 
- 
- 
- # Home page con gestione del token pubblico
- @home_bp.route('/homepage')
- def homepage():
-     token_info = session.get('token_info', None)
- 
-     
-     if token_info:
-         sp = get_spotify_object(token_info)
-         user_info = sp.current_user()
-         user_sp = sp.current_user()  # Dettagli utente Spotify
-         playlists = sp.current_user_playlists()['items']
-         user_info = None  # Non utilizzare user_info di Flask-Login se sei loggato su Spotify
-     else:
-         user_info = None
-         playlists = None
- 
-     return render_template('home.html', user_info=user_info, playlists=playlists)
- 
- def save_playlist(user_id, playlist_id):
-     conn = get_db_connection()
-     with conn.cursor() as cursor:
-         cursor.execute('''INSERT INTO user_playlists (user_id, playlist_id) VALUES (%s, %s)''', (user_id, playlist_id))
-         conn.commit()
-     conn.close()
-         # Usa il client pubblico di Spotify
-         sp = tokenpubblico()  
-         user_sp = None  # Nessuna informazione di Spotify
-         user_info = {'display_name': current_user.nickname} if current_user.is_authenticated else None
-         
-         # Recupera le playlist salvate nel database per l'utente loggato tramite Flask-Login
-         saved_playlists = db.fetch_query('SELECT * FROM Playlist WHERE nickname = ?', (current_user.nickname,))
-         playlists = []
-         for saved_playlist in saved_playlists:
-             playlist_id = saved_playlist[0]  # id_p della playlist salvata
-             # Recupera i dettagli della playlist tramite il client pubblico
-             playlist_details = sp.playlist(playlist_id)  # Usa un client pubblico se non è autenticato con Spotify
-             playlists.append(playlist_details)
-     
-     return render_template('home.html', user_sp=user_sp, user_info=user_info, playlists=playlists)
- 
- @home_bp.route('/playlist.html/<playlist_id>')
- # Visualizza brani della playlist
- @home_bp.route('/playlist_tracks/<playlist_id>')
- def playlist_tracks(playlist_id):
-     Visualizza i brani di una playlist.
-     token_info = session.get('token_info', None)
-     
-     session['current_playlist_id'] = playlist_id
-     token_info = session.get('token_info',None)
-     if not token_info:
-         return redirect(url_for('auth.login'))  
-         return redirect(url_for('auth.login'))  # Reindirizza se l'utente non è loggato
-     
-     sp = spotipy.Spotify(auth=token_info['access_token'])
-     tracks = sp.playlist_tracks(playlist_id)['items']
-     
-     try:
-         # Ottenere i dettagli della playlist
-         playlist = sp.playlist(playlist_id)
-         tracks = playlist['tracks']['items']
-         playlist_name = playlist['name']
-     except Exception as e:
-         flash(f"Errore nel recupero dei brani della playlist: {e}", "danger")
-         return redirect(url_for('home.homepage'))
-     
-     return render_template('brani.html', tracks=tracks, playlist_name=playlist_name)
- 
- 
- # Salva playlist tra i preferiti
- @home_bp.route('/saved_playlist', methods=['POST'])
- @login_required
- def saved_playlist():
-     Salva una playlist tra i preferiti nel DB SQLite per l'utente loggato.
-     
-     playlist_id = request.form.get('playlist_id')
-     
-     if not playlist_id:
-         flash("Errore: Playlist ID non trovato", "danger")
-         return redirect(url_for('home.homepage'))
- 
-     # Prendi il nickname dell'utente loggato
-     nickname = current_user.get_id()
- 
-     # Usa l'API di Spotify per ottenere i dettagli della playlist
-     sp = spotipy.Spotify(auth=session.get('token_info')['access_token'])
-     try:
-         playlist = sp.playlist(playlist_id)  # Ottieni la playlist da Spotify
-     except Exception as e:
-         flash(f"Errore nel recupero della playlist: {e}", "danger")
-         return redirect(url_for('home.homepage'))
- 
-     playlist_name = playlist['name']  # Nome della playlist
- 
-     # Verifica se la combinazione playlist_id e nickname esiste già nel DB
-     existing = db.fetch_query(
-         'SELECT * FROM Playlist WHERE id_p = ? AND nickname = ?',
-         (playlist_id, nickname)
-     )
- 
-     if not existing:  # Se la combinazione non esiste, aggiungi la playlist
-         db.aggiungi_Playlist(playlist_id, nickname)
-         flash(f"La playlist '{playlist_name}' è stata aggiunta ai preferiti!", "success")
-     else:
-         flash(f"La playlist '{playlist_name}' è già nei tuoi preferiti.", "info")
- 
-     # Redirect alla homepage dopo l'aggiunta
-     return redirect(url_for('home.homepage'))
- 
- 
-     return render_template('playlist.html', tracks=tracks)
- @home_bp.route('/cerca', methods=['GET'])
- def cerca():
- 
-     query = request.args.get('query')
-     token_info = session.get('token_info', None)
- 
-     if not query:
-         return render_template('search.html', results=None)
- 
-     # Usa il client pubblico se non è loggato
-     if token_info:
-         sp = spotipy.Spotify(auth=token_info['access_token'])
-         user_info = sp.current_user()
-         playlists = sp.current_user_playlists()['items']
-     else:
-         sp = tokenpubblico()  # Usa il client pubblico
-         user_info = None
-         playlists = sp.search(q=query, type='playlist', limit=10)['playlists']['items']
-     
-     return render_template('home.html', query=query, results=playlists)
- 
- 
-     
-     if token_info:
-         sp = spotipy.Spotify(auth=token_info['access_token'])
-         user_info = sp.current_user()
- @@ -146,7 +434,8 @@ def view_saved_playlists():
- 
-     return render_template('saved_playlists.html', playlists=playlists, message=message)
- 
- 
-"""
-"""
- def playlist_analysis():
-     message = ""
-     user_id = current_user.id
- @@ -188,7 +477,7 @@ def playlist_analysis():
-     genre_fig = px.pie(genre_distribution, names=genre_distribution.index, values=genre_distribution.values, title='Distribuzione dei generi musicali')
-     
-     return render_template('playlist_analysis.html', artist_fig=artist_fig.to_html(), album_fig=album_fig.to_html(), genre_fig=genre_fig.to_html(), message=message)
-"""
+@home_bp.route('/suggerimenti', methods=['GET', 'POST'])
+def suggerimenti():
+    token_info = session.get('token_info')
+    if token_info:
+        sp = get_spotify_object(token_info)
+    else:
+        sp = sp_public  # Usa l'accesso pubblico se non sei loggato
+
+    query = request.args.get('query', '')  # Parametro di ricerca (può essere un artista, brano o genere)
+
+    # Ottenere i suggerimenti basati sulla query (se è un artista, brano o genere)
+    try:
+        if query:
+            response = sp.recommendations(seed_artists=[query], limit=10)  # 10 suggerimenti, puoi personalizzare
+
+        else:
+            # Usa un set predefinito di artisti, brani o generi se la query è vuota
+            response = sp.recommendations(seed_artists=["3Nrfpe0tUJi4K4DXYWgMUX"], limit=10)  # Esempio con un artista
+
+        suggestions = response['tracks']  # Lista dei brani suggeriti
+
+        return render_template('suggerimenti.html', suggestions=suggestions)
+
+    except Exception as e:
+        print(f"Errore nel recupero dei suggerimenti: {e}")
+        return render_template('error.html', error_message="Si è verificato un errore.")
+
+
+@home_bp.route('/add_to_playlist', methods=['POST'])
+def add_to_playlist():
+    token_info = session.get('token_info')
+    track_id = request.form.get('track_id')
+    
+    if token_info:
+        sp = get_spotify_object(token_info)
+    else:
+        return redirect(url_for('auth.login'))  # Redirigi se l'utente non è loggato
+    
+    try:
+        # Creiamo una playlist nuova o aggiungiamo a quella esistente
+        user_id = sp.current_user()['id']
+        playlist_id = session.get('playlist_id')  # Usa la playlist salvata nella sessione o creane una nuova
+
+        # Se non c'è una playlist id, creiamo una nuova playlist
+        if not playlist_id:
+            playlist = sp.user_playlist_create(user_id, "Nuova Playlist")
+            playlist_id = playlist['id']
+            session['playlist_id'] = playlist_id  # Salva l'ID della nuova playlist nella sessione
+
+        # Aggiungiamo il brano alla playlist
+        sp.user_playlist_add_tracks(user_id, playlist_id, [track_id])
+
+        return redirect(url_for('home.suggerimenti'))  # Torna alla pagina dei suggerimenti
+
+    except Exception as e:
+        print(f"Errore nell'aggiunta alla playlist: {e}")
+        return render_template('error.html', error_message="Si è verificato un errore.")

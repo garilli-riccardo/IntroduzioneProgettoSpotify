@@ -7,7 +7,7 @@
 
 /* Impostazioni globali per il body */
 body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Circular', sans-serif; /* Modificato per avvicinarsi al font Spotify */
     background-color: #121212;
     color: #FFFFFF;
     padding-top: 50px;
@@ -93,6 +93,11 @@ form button:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: background-color 0.3s ease;
+}
+
+.results li:hover {
+    background-color: #333; /* Colore più chiaro al passaggio del mouse */
 }
 
 .results li img {
@@ -117,13 +122,9 @@ form button:hover {
 }
 
 /* Layout della tabella per le playlist */
-table {
-    width: 80%;
-    margin: 0 auto;
-    border-collapse: collapse;
-    background-color: #232323;
-    border-radius: 10px;
-    margin-bottom: 40px;
+tbody tr:hover {
+    background-color: #333; /* Colore di hover delle righe */
+    cursor: pointer;
 }
 
 table, th, td {
@@ -135,23 +136,23 @@ th, td {
     text-align: center;
 }
 
-th {
-    background-color: #181818;
-    color: #B3B3B3;
-}
-
-tbody tr:hover {
-    background-color: #333;
-}
-
-tbody tr {
-    background-color: #232323;
-}
-
 td img {
     width: 50px;
     height: 50px;
     border-radius: 8px;
+    object-fit: cover; /* Gestione corretta delle immagini */
+}
+
+/* Aggiungi uno stile per i titoli della playlist nelle righe */
+td a {
+    color: #1DB954;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+td a:hover {
+    color: #1ED760;
 }
 
 /* Pulsanti per le playlist */
@@ -222,6 +223,7 @@ td img {
     height: 250px;
     border-radius: 10px;
     margin-bottom: 20px;
+    object-fit: cover; 
 }
 
 .album-info p {
@@ -275,4 +277,242 @@ section {
 .main-content {
     margin-left: 240px; /* Larghezza della sidebar fissa */
     padding-top: 50px;
+}
+
+/* Flash messages */
+.flash.success {
+    background-color: #28a745; /* Verde per i successi */
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.flash.error {
+    background-color: #dc3545; /* Rosso per gli errori */
+    color: white;
+    border: 2px solid #dc3545;
+}
+
+/* Nuove modifiche per i bottoni e pulsanti */
+button[type="submit"]:not(.btn-danger):not(.btn-info):not(.btn-warning) {
+    background-color: #28a745; /* verde brillante */
+    color: white;
+}
+
+button[type="submit"]:not(.btn-danger):not(.btn-info):not(.btn-warning):hover {
+    background-color: #218838; /* verde scuro */
+}
+
+/* Button Blu - Analizza */
+.btn-info {
+    background-color: #007bff; /* blu */
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #0056b3; /* blu scuro */
+}
+
+/* Button Giallo - Aggiungi ai preferiti */
+.btn-warning {
+    background-color: #ffc107; /* giallo */
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800; /* giallo scuro */
+}
+
+/* Button Rosso - Rimuovi */
+.btn-danger {
+    background-color: #dc3545; /* rosso */
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* rosso scuro */
+}
+
+/* Stile per il link (per esempio: Torna alla Home) */
+a {
+    color: #1DB954; /* Verde Spotify */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Table per la visualizzazione delle playlist */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f8f9fa;
+}
+
+/* Stile per i risultati della ricerca */
+ul {
+    list-style-type: none;
+}
+
+ul li {
+    padding: 10px;
+    background-color: #ffffff;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+ul li img {
+    max-width: 100px;
+    margin-right: 15px;
+}
+
+/* Stile per il form di ricerca */
+form {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+form input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    width: 70%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+form button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #28a745; /* Verde per il bottone di ricerca */
+    color: white;
+    border-radius: 5px;
+    border: none;
+}
+
+form button:hover {
+    background-color: #218838; /* verde scuro */
+}
+
+button[type="submit"].btn-sm {
+    width: auto;
+    padding: 6px 12px;
+}
+
+/* Aggiungi margini ai div */
+.mt-2 {
+    margin-top: 20px;
+}
+
+.d-inline-block {
+    display: inline-block;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.auth-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* Container per login e registrazione */
+.auth-container {
+    background-color: #181818; /* Sfondo scuro ma distinguibile */
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    margin: auto;
+    margin-top: 10%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Ombreggiatura */
+    border: 1px solid #333;
+}
+
+/* Titolo della pagina */
+.auth-container h1 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #FFFFFF;
+}
+
+/* Form styling */
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-container input[type="text"],
+.auth-container input[type="password"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #333;
+    background-color: #121212;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.auth-container input[type="text"]::placeholder,
+.auth-container input[type="password"]::placeholder {
+    color: #777;
+}
+
+.auth-container button {
+    padding: 10px;
+    background-color: #1DB954;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.auth-container button:hover {
+    background-color: #1ED760;
+}
+
+/* Link per login/registrazione */
+.auth-container a {
+    color: #1DB954;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+.auth-container a:hover {
+    text-decoration: underline;
+}
+
+/* Flash messages */
+.flash {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.flash.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.flash.error {
+    background-color: #dc3545;
+    color: white;
 }

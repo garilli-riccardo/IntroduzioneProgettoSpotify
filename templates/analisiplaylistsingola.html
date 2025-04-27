@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisi Playlist - {{ playlist_name }}</title>
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Circular', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1DB954;
+            padding: 1rem;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background-color: #181818;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .chart-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1DB954;
+        }
+        .buttons-container {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #1DB954;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #1aa34a;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Analisi di: {{ playlist_name }}</h1>
+    </header>
+
+    <main>
+        <div class="chart-container">
+            {{ year_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            {{ duration_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            {{ popularity_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            {{ genre_chart | safe }}
+        </div>
+
+        <div class="chart-container">
+            {{ evolution_chart | safe }}
+        </div>
+
+        <div class="buttons-container">
+            <a class="btn" href="{{ url_for('home.homepage') }}">Torna alla Home</a>
+            {% if query %}
+                <a class="btn" href="{{ url_for('home.cerca', query=query) }}">Torna alle Playlist</a>
+            {% endif %}
+        </div>
+        
+    </main>
+</body>
+</html>

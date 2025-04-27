@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Brani della Playlist</title>
-        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <title>Brani della Playlist - {{ playlist_name }}</title>
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 <body>
     <div class="container mt-5">
-        <h1>Brani della Playlist</h1>
+        <h1>Brani della Playlist - {{ playlist_name }}</h1>
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
@@ -38,13 +37,20 @@
                     <td>
                         {{ track['track']['duration_ms'] // 60000 }}:{{ '%02d' % ((track['track']['duration_ms'] // 1000) % 60) }}
                     </td>
-                    
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('home.homepage') }}" class="btn btn-primary">Torna alla Home</a>
+        
+        <div class="buttons-container">
+            <a class="btn btn-primary" href="{{ url_for('home.homepage') }}">Torna alla Home</a>
+            {% if query %}
+                <a class="btn btn-secondary" href="{{ url_for('home.cerca', query=query) }}">Torna alle Playlist</a>
+            {% endif %}
+        </div>
+        
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

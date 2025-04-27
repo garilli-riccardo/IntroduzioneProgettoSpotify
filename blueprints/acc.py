@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from services.models import db, User
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+import re
 from flask_login import login_user, LoginManager
-
 
 acc_bp = Blueprint('local_login', __name__)
 
@@ -15,24 +15,23 @@ def login_page():
         utenti = db.get_Utente()
         user_data = next((u for u in utenti if u[0] == username), None)
 
-        if user_data:
-            stored_nickname, stored_password = user_data
+        if not user_data:
+            flash("Utente non trovato. Registrati prima!", "error")
+            return redirect(url_for('local_login.login_page'))
 
-            if stored_password == password:
-                user = User(nickname=stored_nickname)
-                login_user(user)
-                flash("Login effettuato con successo!", "success")
-                return redirect(url_for('home.homepage'))
-            else:
-                flash("Password errata.", "error")
+        stored_nickname, stored_password_hash = user_data
+
+        if check_password_hash(stored_password_hash, password):
+            user = User(nickname=stored_nickname)
+            login_user(user)
+            flash("Login effettuato con successo!", "success")
+            return redirect(url_for('home.homepage'))
         else:
-            flash("Utente non trovato.", "error")
+            flash("Password errata.", "error")
 
         return redirect(url_for('local_login.login_page'))
-
+        
     return render_template('login.html')
-
-
 
 @acc_bp.route('/register', methods=['GET', 'POST'])
 def register_page():
@@ -40,18 +39,27 @@ def register_page():
         nickname = request.form['nickname']
         password = request.form['password']
 
-        # Controlliamo se l'utente esiste già
-        utenti = db.get_Utente()  # Usa db per accedere agli utenti
+        # Controllo se l'utente esiste già
+        utenti = db.get_Utente()
         if any(u[0] == nickname for u in utenti):
-            flash('Nome utente già esistente!', 'error')
+            flash('Nome utente già esistente, scegli un altro nickname.', 'error')
             return redirect(url_for('local_login.register_page'))
 
-        # Salviamo l'utente con password in chiaro
-        db.aggiungi_Utente(nickname, password)   
-        flash('Registrazione completata con successo!', 'success')
+        # Validazione password
+        if len(password) < 6 or not re.search(r'[A-Z]', password) or not re.search(r'[^A-Za-z0-9]', password):
+            flash('La password deve essere di almeno 6 caratteri, contenere una lettera maiuscola e un carattere speciale.', 'error')
+            return redirect(url_for('local_login.register_page'))
+
+        # Cripta la password
+        password_hash = generate_password_hash(password)
+        db.aggiungi_Utente(nickname, password_hash)
+
+        flash('Registrazione completata con successo! Ora puoi accedere.', 'success')
         return redirect(url_for('local_login.login_page'))
 
     return render_template('register.html')
+
+
 
 from flask_login import logout_user
 

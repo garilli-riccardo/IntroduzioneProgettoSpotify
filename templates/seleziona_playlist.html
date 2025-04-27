@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleziona Playlist da Confrontare</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1DB954;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+        .playlist-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .playlist-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #181818;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: 200px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .playlist-card:hover {
+            transform: scale(1.05);
+        }
+        .playlist-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            object-fit: cover;
+        }
+        .playlist-card p {
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .checkbox-container input {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            appearance: none;
+            background-color: #333;
+            border: 2px solid #1DB954;
+            transition: background-color 0.3s;
+        }
+        .checkbox-container input:checked {
+            background-color: #1DB954;
+        }
+        .checkbox-container label {
+            margin-left: 10px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        button {
+            background-color: #1DB954;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1ed760;
+        }
+        a {
+            color: #1DB954;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+        }
+        .toast-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #D32F2F;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            opacity: 1;
+            animation: fadeOut 4s ease forwards;
+            z-index: 999;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; top: -20px; }
+        }
+        /* Modal */
+        .modal-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #181818;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #1DB954;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Seleziona due playlist da confrontare</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="toast-message">
+                <p>{{ messages[0] }}</p>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('analysis.confronta_playlist') }}" method="POST" id="confronta-form" onsubmit="showSpinner()">
+        <div class="playlist-container">
+            {% for id_p, nome, image_url in playlists %}
+                <div class="playlist-card">
+                    <img src="{{ image_url }}" alt="Playlist Image">
+                    <p>{{ nome }}</p>
+                    <div class="checkbox-container">
+                        <input type="checkbox" name="playlist" value="{{ id_p }}">
+                        <label>Seleziona</label>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    
+        <div class="button-container">
+            <button type="submit" id="submit-btn">Confronta</button>
+        </div>
+    </form>
+
+    <div class="button-container">
+        <a href="{{ url_for('home.homepage') }}">Torna alla Home</a>
+    </div>
+
+    <!-- Modal Spinner -->
+    <div class="modal-container" id="modal-container">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Analisi in corso...</p>
+        </div>
+    </div>
+
+    <script>
+        function showSpinner() {
+            document.getElementById('modal-container').style.display = 'flex';
+        }
+    </script>
+
+</body>
+</html>

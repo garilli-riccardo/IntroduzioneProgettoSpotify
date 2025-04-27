@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <style>
+        .auth-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .auth-buttons p {
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
+
+<div class="container">
 
     {% if user_sp %}
         <h1>Benvenuto, {{ user_sp['display_name'] }}! Sei loggato con Spotify.</h1>
@@ -16,109 +28,161 @@
         <h1>Benvenuto, esplora le playlist!</h1>
     {% endif %}
 
+    <!-- Form di ricerca -->
     <form action="{{ url_for('home.cerca') }}" method="get">
         <input type="text" name="query" placeholder="Cerca una playlist..." required value="{{ request.args.get('query', '') }}">
         <button type="submit">Cerca</button>
     </form>
 
-    {% if request.args.get('query') %}
-        <p>Risultati per: <strong>{{ request.args.get('query', '') }}</strong></p>
+    <section>
+        <div class="left">
+            {% if request.args.get('query') %}
+                <!-- Se stai cercando: mostra solo i risultati della ricerca -->
+                <p>Risultati per: <strong>{{ request.args.get('query') }}</strong></p>
 
-        {% if results %}
-            <ul>
-                {% for playlist in results %}
-                    {% if playlist %}
-                    <li>
-                        <strong>{{ playlist.get('name', 'Senza Nome') }}</strong><br>
+                {% if results %}
+                    <ul>
+                        {% for playlist in results %}
+                            {% if playlist %}
+                                <li>
+                                    <strong>{{ playlist.get('name', 'Senza Nome') }}</strong><br>
+                                    {% if playlist.get('images') %}
+                                        <img src="{{ playlist['images'][0]['url'] }}" width="100">
+                                    {% endif %}
+                                    <form action="{{ url_for('home.saved_playlist') }}" method="post">
+                                        <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                                        <input type="hidden" name="playlist_name" value="{{ playlist['name'] }}">
+                                        <button type="submit" class="btn btn-warning">Aggiungi ai Preferiti</button>
+                                    </form>
+                                    <p>
+                                        <form action="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" method="get">
+                                            <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
+                                            <button type="submit" class="btn btn-primary">Visualizza Brani</button>
+                                        </form>
+                                    </p>
+                                    <form action="{{ url_for('analysis.single_playlist_analysis') }}" method="get">
+                                        <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                                        <input type="hidden" name="query" value="{{ request.args.get('query') }}">
+                                        <button type="submit" class="btn btn-info">Analizza Playlist</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Nessuna playlist trovata.</p>
+                {% endif %}
 
-                        {% if playlist.get('images') %}
-                            <img src="{{ playlist['images'][0]['url'] }}" width="100">
-                        {% endif %}
+                <!-- Solo bottone torna alla home -->
+                <p><a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a></p>
 
-                        <form action="{{ url_for('home.saved_playlist') }}" method="post">
-                            <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
-                            <input type="hidden" name="playlist_name" value="{{ playlist.name }}">
-                            <button type="submit" class="btn btn-warning">Aggiungi ai Preferiti</button>
-                        </form>
+            {% else %}
+                <!-- Se NON stai cercando: mostra tutte le tue playlist salvate -->
+                <h2>Le tue Playlist:</h2>
 
-                        <p>
-                            <a href="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" class="btn btn-primary">
-                                Visualizza Brani
-                            </a>
-                        </p>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
+                {% if playlists %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome Playlist</th>
+                                <th>Numero di Brani</th>
+                                <th>Copertina</th>
+                                <th>Visualizza Brani</th>
+                                <th>Analizza</th>
+                                <th>Elimina</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for playlist in playlists %}
+                                <tr>
+                                    <td>{{ playlist['name'] }}</td>
+                                    <td>{{ playlist['tracks']['total'] }}</td>
+                                    <td>
+                                        {% if playlist['images'] %}
+                                            <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
+                                        {% else %}
+                                            Nessuna immagine
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form action="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" method="get">
+                                            <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
+                                            <button type="submit" class="btn btn-primary">Visualizza Brani</button>
+                                        </form>
+                                    </td>
+                                    
+                                    <td>
+                                        <form action="{{ url_for('analysis.single_playlist_analysis') }}" method="get">
+                                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                                            <button type="submit" class="btn btn-info">Analizza Playlist</button>
+                                        </form>
+                                    </td>
+                                    
+                                    <td>
+                                        <form action="{{ url_for('home.remove_single_playlist') }}" method="post">
+                                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
+                                            <button type="submit" class="btn btn-danger">Elimina</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <!-- Aggiungi il link condivisibile -->
+                                        <a href="{{ playlist['external_urls']['spotify'] }}" target="_blank">
+                                            <button class="btn btn-success">Apri su Spotify</button>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <!-- Pulsante per copiare il link negli appunti -->
+                                        <button class="btn btn-info" onclick="copyToClipboard('{{ playlist['external_urls']['spotify'] | tojson }}')">Condividi</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Non hai playlist salvate.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="right">
+            {% if not request.args.get('query') and playlists %}
+                <form action="{{ url_for('home.remove_playlist') }}" method="post" class="d-inline-block mt-2">
+                    <button type="submit" class="btn btn-danger btn-sm w-100">Rimuovi Tutte le Playlist</button>
+                </form>
+                <p>
+                    <a href="{{ url_for('analysis.seleziona_playlist') }}" class="btn btn-success">Confronta Playlist</a>
+                </p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Login / Logout -->
+    <div class="auth-buttons">
+        {% if user_sp %}
+            <p><a href="{{ url_for('auth.logout') }}" class="btn btn-warning">Logout da Spotify</a></p>
         {% else %}
-            <p>Nessuna playlist trovata.</p>
+            <p><a href="{{ url_for('auth.login') }}" class="btn btn-success">Accedi con Spotify</a></p>
         {% endif %}
-        <p><a href="{{ url_for('home.homepage') }}">Torna alla Home</a></p>
+        <a href="{{ url_for('home.suggerimenti') }}" class="btn btn-primary">Ottieni Suggerimenti di Brani</a>
 
-    {% else %}
-        <h2>Le tue Playlist:</h2>
-        {% if playlists %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Nome Playlist</th>
-                    <th>Numero di Brani</th>
-                    <th>Copertina</th>
-                    <th>Visualizza Brani</th>
-                    <th>Preferiti</th>
-                    <th>Elimina</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for playlist in playlists %}
-                <tr>
-                    <td>{{ playlist['name'] }}</td>
-                    <td>{{ playlist['tracks']['total'] }}</td>
-                    <td>
-                        {% if playlist['images'] %}
-                            <img src="{{ playlist['images'][0]['url'] }}" width="50" alt="Copertina playlist">
-                        {% else %}
-                            Nessuna immagine
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form action="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" method="get">
-                            <button type="submit" class="btn btn-primary">Visualizza Brani</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="{{ url_for('home.saved_playlist') }}" method="post">
-                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
-                            <input type="hidden" name="playlist_name" value="{{ playlist['name'] }}">
-                            <button type="submit" class="btn btn-warning">Aggiungi ai Preferiti</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="{{ url_for('home.remove_single_playlist') }}" method="post">
-                            <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
-                            <button type="submit" class="btn btn-danger">Elimina</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    {% endif %}
+        <p><a href="{{ url_for('local_login.local_logout') }}" class="btn btn-danger">Logout account locale</a></p>
+    </div>
 
-    <form action="{{ url_for('home.remove_playlist') }}" method="post" class="d-inline-block mt-2">
-        <button type="submit" class="btn btn-danger btn-sm w-100">Rimuovi Tutte le Playlist</button>
-    </form>
+</div>
 
-    <a href="{{ url_for('analysis.playlist_analysis') }}" class="button-link">
-        Vai all'Analisi Playlist
-    </a>
+<!-- JavaScript per copiare il link negli appunti -->
+<script>
+    function copyToClipboard(link) {
+        // Crea un input temporaneo
+        var tempInput = document.createElement('input');
+        tempInput.value = link;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
 
-    {% if user_sp %}
-        <p>Ciao, {{ user_sp['display_name'] }}! <a href="{{ url_for('auth.logout') }}">Logout da Spotify</a></p>
-    {% else %}
-        <p><a href="{{ url_for('auth.login') }}">Accedi con Spotify</a></p>
-    {% endif %}
-    <a href="{{ url_for('local_login.local_logout') }}">Logout account locale</a>
+        alert("Link copiato negli appunti!");
+    }
+</script>
+
 </body>
 </html>

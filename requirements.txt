@@ -4,3 +4,4 @@ pandas
 plotly
 spotipy
 mypysql
+statsmodels
