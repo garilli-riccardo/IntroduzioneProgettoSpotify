@@ -90,6 +90,8 @@
                                 <th>Visualizza Brani</th>
                                 <th>Analizza</th>
                                 <th>Elimina</th>
+                                <th>Apri su Spotify</th>
+                                <th>Condividi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,7 +134,8 @@
                                     </td>
                                     <td>
                                         <!-- Pulsante per copiare il link negli appunti -->
-                                        <button class="btn btn-info" onclick="copyToClipboard('{{ playlist['external_urls']['spotify'] | tojson }}')">Condividi</button>
+                                        <button class="btn btn-info" onclick="sharePlaylist('{{ playlist['external_urls']['spotify'] }}')">Condividi</button>
+
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -162,27 +165,56 @@
         {% else %}
             <p><a href="{{ url_for('auth.login') }}" class="btn btn-success">Accedi con Spotify</a></p>
         {% endif %}
-        <a href="{{ url_for('home.suggerimenti') }}" class="btn btn-primary">Ottieni Suggerimenti di Brani</a>
+        <p><a href="{{ url_for('home.suggerimenti') }}" class="btn btn-primary">Ottieni Suggerimenti di Brani</a></p>
+
 
         <p><a href="{{ url_for('local_login.local_logout') }}" class="btn btn-danger">Logout account locale</a></p>
     </div>
 
 </div>
 
-<!-- JavaScript per copiare il link negli appunti -->
 <script>
-    function copyToClipboard(link) {
-        // Crea un input temporaneo
-        var tempInput = document.createElement('input');
-        tempInput.value = link;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-
-        alert("Link copiato negli appunti!");
+    // Funzione per condividere il link della playlist
+    function sharePlaylist(link) {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Ascolta questa Playlist su Spotify!',
+                url: link
+            }).then(() => {
+                console.log('Playlist condivisa con successo!');
+            }).catch((error) => {
+                console.error('Errore nella condivisione: ', error);
+            });
+        } else {
+            alert('Il tuo browser non supporta la condivisione nativa. Puoi copiare il link manualmente.');
+        }
     }
 </script>
+
+
+<!-- JavaScript per copiare il link negli appunti -->
+<script>
+    function copyToClipboard() {
+        var link = document.getElementById("playlistLink").value;
+
+        navigator.clipboard.writeText(link).then(function() {
+            var message = document.getElementById("copyMessage");
+            message.style.display = 'block';
+
+            setTimeout(function() {
+                message.style.display = 'none';
+            }, 2000);
+        }).catch(function(error) {
+            console.error('Errore nella copia: ', error);
+        });
+    }
+
+    function openLink() {
+        var link = document.getElementById("playlistLink").value;
+        window.open(link, "_blank");
+    }
+</script>
+
 
 </body>
 </html>

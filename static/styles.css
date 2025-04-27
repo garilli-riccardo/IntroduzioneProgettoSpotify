@@ -343,24 +343,56 @@ a:hover {
 }
 
 /* Table per la visualizzazione delle playlist */
+/* Table per la visualizzazione delle playlist */
 table {
     width: 100%;
     margin-top: 20px;
     border-collapse: collapse;
+    background-color: #181818; /* Background scuro per il tavolo */
 }
 
 table, th, td {
-    border: 1px solid #ddd;
+    border: 1px solid #333;
 }
 
+/* Aggiungi colore al testo della tabella */
 th, td {
     padding: 10px;
     text-align: left;
+    color: #D3D3D3; /* Cambia il colore del testo per renderlo leggibile */
 }
 
+/* Cambia il colore di sfondo per i titoli della tabella */
 th {
-    background-color: #f8f9fa;
+    background-color: #2C2C2C; /* Colore scuro per i titoli della tabella */
 }
+
+/* Aggiungi un colore di hover per le righe */
+tbody tr:hover {
+    background-color: #333; /* Colore di hover delle righe */
+    cursor: pointer;
+}
+
+/* Imposta l'immagine delle playlist nella tabella */
+td img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover; /* Gestisce correttamente le immagini */
+}
+
+/* Aggiungi uno stile per i link nelle celle */
+td a {
+    color: #1DB954; /* Verde Spotify per i link */
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+td a:hover {
+    color: #1ED760;
+}
+
 
 /* Stile per i risultati della ricerca */
 ul {

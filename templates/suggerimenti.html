@@ -1,39 +1,61 @@
+<!-- suggerimenti.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suggerimenti di Brani</title>
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <title>Suggerimenti Spotify</title>
 </head>
 <body>
+    <h1>Ricerca Suggerimenti Spotify</h1>
 
-<div class="container">
-    <h1>Suggerimenti di Brani</h1>
+    <!-- Barra di ricerca -->
+    <form action="{{ url_for('home.suggerimenti') }}" method="GET">
+        <label for="query">Cerca un artista, album, brano:</label>
+        <input type="text" name="query" id="query" value="{{ request.args.get('query', '') }}" required placeholder="Inserisci un termine di ricerca" oninput="submit()">
+        <button type="submit" style="display:none;">Cerca</button> <!-- Nascondiamo il bottone di submit -->
+    </form>
 
-    {% if suggestions %}
-        <ul>
-            {% for track in suggestions %}
-                <li>
-                    <strong>{{ track['name'] }}</strong> by {{ track['artists'][0]['name'] }}<br>
-                    <audio controls>
-                        <source src="{{ track['preview_url'] }}" type="audio/mp3">
-                        Il tuo browser non supporta l'elemento audio.
-                    </audio>
-                    <!-- Pulsante per aggiungere alla playlist -->
-                    <form action="{{ url_for('home.add_to_playlist') }}" method="post">
-                        <input type="hidden" name="track_id" value="{{ track['id'] }}">
-                        <button type="submit">Aggiungi alla Playlist</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Nessun suggerimento disponibile.</p>
+    {% if tracks or albums or artists %}
+        <h2>Risultati della ricerca</h2>
+        <div>
+            <h3>Brani</h3>
+            <ul>
+                {% for track in tracks %}
+                    <li>
+                        <strong>{{ track.name }}</strong><br>
+                        Artista: {{ track.artists[0].name }}<br>
+                        Album: {{ track.album.name }}<br>
+                        <a href="{{ track.external_urls.spotify }}" target="_blank">Ascolta su Spotify</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h3>Album</h3>
+            <ul>
+                {% for album in albums %}
+                    <li>
+                        <strong>{{ album.name }}</strong><br>
+                        Artista: {{ album.artists[0].name }}<br>
+                        <a href="{{ album.external_urls.spotify }}" target="_blank">Ascolta su Spotify</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h3>Artisti</h3>
+            <ul>
+                {% for artist in artists %}
+                    <li>
+                        <strong>{{ artist.name }}</strong><br>
+                        <a href="{{ artist.external_urls.spotify }}" target="_blank">Vedi su Spotify</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
-
-    <p><a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a></p>
-</div>
-
 </body>
 </html>

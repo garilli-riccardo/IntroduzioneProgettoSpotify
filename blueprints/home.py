@@ -246,33 +246,60 @@ def remove_single_playlist():
     else:
         flash('Errore: Playlist non trovata.')
     return redirect(url_for('home.homepage'))
- 
+    
 @home_bp.route('/suggerimenti', methods=['GET', 'POST'])
 def suggerimenti():
     token_info = session.get('token_info')
+    query = request.args.get('query', '')  # Parametro di ricerca (può essere un artista, album, brano o genere)
+
     if token_info:
         sp = get_spotify_object(token_info)
     else:
         sp = sp_public  # Usa l'accesso pubblico se non sei loggato
 
-    query = request.args.get('query', '')  # Parametro di ricerca (può essere un artista, brano o genere)
-
-    # Ottenere i suggerimenti basati sulla query (se è un artista, brano o genere)
     try:
         if query:
-            response = sp.recommendations(seed_artists=[query], limit=10)  # 10 suggerimenti, puoi personalizzare
+            # Eseguiamo una ricerca per l'input generico dell'utente
+            search_results = sp.search(q=query, type='track,artist,album,playlist', limit=5)
 
+            # Determiniamo il tipo di ricerca dalla risposta
+            artists = search_results['artists']['items']
+            albums = search_results['albums']['items']
+            tracks = search_results['tracks']['items']
+            playlists = search_results['playlists']['items']
+
+            # Se abbiamo trovato degli artisti, usiamo gli ID per ottenere suggerimenti
+            if artists:
+                artist_id = artists[0]['id']
+                response = sp.recommendations(seed_artists=[artist_id], limit=10)
+            # Se abbiamo trovato degli album, usiamo l'album per ottenere suggerimenti
+            elif albums:
+                album_id = albums[0]['id']
+                response = sp.recommendations(seed_albums=[album_id], limit=10)
+            # Se abbiamo trovato dei brani, usiamo il brano per ottenere suggerimenti
+            elif tracks:
+                track_id = tracks[0]['id']
+                response = sp.recommendations(seed_tracks=[track_id], limit=10)
+            # Se abbiamo trovato playlist, usiamo i brani della playlist per ottenere suggerimenti
+            elif playlists:
+                track_ids = [track['id'] for track in playlists[0]['tracks']['items'][:5]]
+                response = sp.recommendations(seed_tracks=track_ids, limit=10)
+            else:
+                flash('Nessun risultato trovato per la tua ricerca!')
+                return redirect(url_for('home.homepage'))
+
+            suggestions = response['tracks']  # Lista dei brani suggeriti
+            return render_template('suggerimenti.html', suggestions=suggestions, query=query)
         else:
-            # Usa un set predefinito di artisti, brani o generi se la query è vuota
-            response = sp.recommendations(seed_artists=["3Nrfpe0tUJi4K4DXYWgMUX"], limit=10)  # Esempio con un artista
-
-        suggestions = response['tracks']  # Lista dei brani suggeriti
-
-        return render_template('suggerimenti.html', suggestions=suggestions)
+            # Se la query è vuota, usiamo un artista di default
+            response = sp.recommendations(seed_artists=["3Nrfpe0tUJi4K4DXYWgMUX"], limit=10)
+            suggestions = response['tracks']
+            return render_template('suggerimenti.html', suggestions=suggestions)
 
     except Exception as e:
         print(f"Errore nel recupero dei suggerimenti: {e}")
         return render_template('error.html', error_message="Si è verificato un errore.")
+
 
 
 @home_bp.route('/add_to_playlist', methods=['POST'])
