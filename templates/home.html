@@ -109,21 +109,21 @@
                                     <td>
                                         <form action="{{ url_for('home.visualizza_brani', playlist_id=playlist['id']) }}" method="get">
                                             <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
-                                            <button type="submit" class="btn btn-primary">Visualizza Brani</button>
+                                            <button type="submit" class="btn btn-primary" id ="cic">Visualizza Brani</button>
                                         </form>
                                     </td>
                                     
                                     <td>
                                         <form action="{{ url_for('analysis.single_playlist_analysis') }}" method="get">
                                             <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
-                                            <button type="submit" class="btn btn-info">Analizza Playlist</button>
+                                            <button type="submit" class="btn btn-info" id="cicx2">Analizza Playlist</button>
                                         </form>
                                     </td>
                                     
                                     <td>
                                         <form action="{{ url_for('home.remove_single_playlist') }}" method="post">
                                             <input type="hidden" name="playlist_id" value="{{ playlist['id'] }}">
-                                            <button type="submit" class="btn btn-danger">Elimina</button>
+                                            <button type="submit" class="btn btn-danger" id="cicx3">Elimina</button>
                                         </form>
                                     </td>
                                     <td>
@@ -190,6 +190,7 @@
         }
     }
 </script>
+
 
 
 <!-- JavaScript per copiare il link negli appunti -->

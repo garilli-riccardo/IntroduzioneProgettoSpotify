@@ -279,9 +279,6 @@ def seleziona_playlist():
     # Renderizza il template con le playlist
     return render_template('seleziona_playlist.html', playlists=playlist_info)
 
-
-
-
 @analysis_bp.route('/single_playlist_analysis', methods=['GET'])
 @login_required
 def single_playlist_analysis():
@@ -343,6 +340,24 @@ def single_playlist_analysis():
         title='Evoluzione della Popolarità nel Tempo',
         labels={'release_year': 'Anno di Pubblicazione', 'popularity': 'Popolarità'}
     )
+    # Top 5 artisti
+    top_artists = df.explode('artists')['artists'].value_counts().head(5).reset_index()
+    top_artists.columns = ['Artista', 'Occorrenze']
+    top_artists_chart = px.bar(top_artists, x='Artista', y='Occorrenze', title='Top 5 Artisti Più Presenti')
+    
+    seed_artist = []
+    for name in top_artists:
+        try:
+            results = sp.search(q=f'artist:{name}', type='artist', limit=1)
+            items = results['artists']['items']
+            if items:
+                artist_id = items[0]['id']
+                seed_artist.append(artist_id)
+            else:
+                seed_artist.append(None)
+        except Exception as e:
+            print(f"Errore nel recupero ID per '{name}': {e}")
+            seed_artist.append(None)
 
     return render_template(
         'analisiplaylistsingola.html',
@@ -352,6 +367,8 @@ def single_playlist_analysis():
         duration_chart=duration_chart.to_html(full_html=False),
         popularity_chart=popularity_chart.to_html(full_html=False),
         genre_chart=genre_chart.to_html(full_html=False),
-        evolution_chart=evolution_chart.to_html(full_html=False)
+        evolution_chart=evolution_chart.to_html(full_html=False),
+        top_artists_chart=top_artists_chart.to_html(full_html=False),
+
     )
 

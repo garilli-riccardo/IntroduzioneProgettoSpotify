@@ -85,6 +85,12 @@
             {{ evolution_chart | safe }}
         </div>
 
+        <div class="chart-container">
+            {{ top_artists_chart | safe }}
+        </div>
+
+    
+
         <div class="buttons-container">
             <a class="btn" href="{{ url_for('home.homepage') }}">Torna alla Home</a>
             {% if query %}

@@ -169,8 +169,31 @@ td a:hover {
     text-align: center;
 }
 
+.acs {
+    width: 80px;
+}
+
+.acs_2 {
+    width: 95px;
+}
+
 .btn:hover {
     background-color: #1ED760;
+}
+.btn#cic {
+    background-color: #1ED760;
+    width: 130px;
+}
+
+.btn#cicx2 {
+
+    width: 130px;
+}
+
+
+.btn#cicx3 {
+
+    width: 110px;
 }
 
 .btn-primary {
