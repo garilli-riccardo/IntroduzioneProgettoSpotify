@@ -1,6 +1,13 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import pandas as pd
+import plotly.express as px
+import statsmodels.api as sm
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 from services.spotify_api import (
     sp_public,
     get_spotify_object,
@@ -10,12 +17,9 @@ from services.spotify_api import (
     get_track_details,
     sp_oauth
 )
-from spotipy.oauth2 import SpotifyClientCredentials
-import pandas as pd
-import plotly.express as px
+
 from services.models import db
-import statsmodels.api as sm
-import time 
+
 
 analysis_bp = Blueprint('analysis', __name__)
 
@@ -60,22 +64,30 @@ def apply_spotify_theme(fig):
     )
     return fig
 
-def get_track_details(track_id):
-    playlists = []
-    if current_user.is_authenticated:
-        saved_playlists = db.fetch_query(
-            'SELECT * FROM Playlist WHERE nickname = ?', 
-            (current_user.nickname,)
-        )
-        for saved in saved_playlists:
-            playlist_id = saved[0]
-            try:
-                playlist_data = sp_public.playlist(playlist_id)
-                playlists.append(playlist_data)
-            except Exception as e:
-                print(f"Error retrieving playlist {playlist_id}: {e}")
-    else:
-        print("User not authenticated.")
+def get_track_details(track_id, user_playlists=None):
+    playlists = user_playlists or []
+
+    try:
+        track = sp.track(track_id)
+        artist_ids = [artist['id'] for artist in track['artists'] if artist.get('id')]
+        artists_data = sp.artists(artist_ids)['artists'] if artist_ids else []
+        genres = {genre for artist in artists_data for genre in artist.get('genres', [])}
+
+        return {
+            'track_id': track_id,
+            'track_name': track.get('name', 'Unknown Track'),
+            'artists': [a.get('name', 'Unknown') for a in track.get('artists', [])],
+            'album': track.get('album', {}).get('name', 'Unknown Album'),
+            'genres': list(genres),
+            'popularity': track.get('popularity', 0),
+            'release_year': track.get('album', {}).get('release_date', '1900')[:4],
+            'duration_ms': track.get('duration_ms', 0),
+            'user_playlists': playlists
+        }
+    except Exception as e:
+        print(f"Error retrieving details for {track_id}: {e}")
+        return {}
+
 
     try:
         track = sp.track(track_id)
@@ -275,6 +287,7 @@ def seleziona_playlist():
     # Render template with playlists
     return render_template('seleziona_playlist.html', playlists=playlist_info)
 
+
 @analysis_bp.route('/single_playlist_analysis', methods=['GET'])
 @login_required
 def single_playlist_analysis():
@@ -293,55 +306,77 @@ def single_playlist_analysis():
     playlist_name = playlist_metadata.get('name', 'Unknown Playlist')
     tracks = playlist_metadata['tracks']['items']
 
-    track_info = []
-    for item in tracks:
-        track = item.get('track')
+    # === Pre-fetch user playlists (to avoid accessing current_user in threads) ===
+    user_playlists = []
+    saved_playlists = db.fetch_query(
+        'SELECT * FROM Playlist WHERE nickname = ?', 
+        (current_user.nickname,)
+    )
+    for saved in saved_playlists:
+        playlist_id_db = saved[0]
+        try:
+            playlist_data = sp_public.playlist(playlist_id_db)
+            user_playlists.append(playlist_data)
+        except Exception as e:
+            print(f"Error retrieving playlist {playlist_id_db}: {e}")
+
+    # === Define worker ===
+    def fetch_track_details_safe(track_item):
+        track = track_item.get('track')
         if track and track.get('id'):
-            details = get_track_details(track['id'])
-            if details:
-                track_info.append(details)
+            return get_track_details(track['id'], user_playlists)
+        return None
+
+    # === Execute in parallel ===
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        track_info = list(executor.map(fetch_track_details_safe, tracks))
+
+    track_info = [info for info in track_info if info]
 
     if not track_info:
         flash("No tracks found in the playlist.", "error")
         return redirect(url_for('home.homepage'))
 
+    # === Create DataFrame and Charts ===
     df = pd.DataFrame(track_info)
-
     df['release_year'] = pd.to_numeric(df['release_year'], errors='coerce')
-    year_chart = px.histogram(df, x='release_year', title='Temporal Distribution of Tracks')
+
+    year_chart = apply_spotify_theme(px.histogram(df, x='release_year', title='Temporal Distribution of Tracks'))
 
     df['duration_min'] = df['duration_ms'] / 60000
-    duration_chart = px.histogram(df, x='duration_min', nbins=30, title='Track Duration Distribution (minutes)')
+    duration_chart = apply_spotify_theme(px.histogram(df, x='duration_min', nbins=30, title='Track Duration Distribution (minutes)'))
 
-    popularity_chart = px.histogram(df, x='popularity', nbins=20, title='Track Popularity Distribution')
+    popularity_chart = apply_spotify_theme(px.histogram(df, x='popularity', nbins=20, title='Track Popularity Distribution'))
 
     genre_series = df.explode('genres')['genres']
     genre_counts = genre_series.value_counts().head(10).reset_index()
     genre_counts.columns = ['genres', 'count']
 
-    genre_chart = px.bar(
+    genre_chart = apply_spotify_theme(px.bar(
         genre_counts,
         x='genres',
         y='count',
         title='Top 10 Musical Genres'
-    )
+    ))
     genre_chart.update_layout(xaxis_title='Genre', yaxis_title='Number of Tracks')
 
-    evolution_chart = px.scatter(
+    evolution_chart = apply_spotify_theme(px.scatter(
         df, 
         x='release_year', 
         y='popularity', 
         trendline="ols",
         title='Popularity Evolution Over Time',
         labels={'release_year': 'Release Year', 'popularity': 'Popularity'}
-    )
+    ))
 
     top_artists = df.explode('artists')['artists'].value_counts().head(5).reset_index()
     top_artists.columns = ['Artist', 'Occurrences']
-    top_artists_chart = px.bar(top_artists, x='Artist', y='Occurrences', title='Top 5 Most Present Artists')
+    top_artists_chart = apply_spotify_theme(px.bar(
+        top_artists, x='Artist', y='Occurrences', title='Top 5 Most Present Artists'
+    ))
 
+    # Recommendations (optional logic)
     top_artist_names = top_artists['Artist'].tolist()
-
     seed_artist = []
     for name in top_artist_names:
         try:
@@ -350,44 +385,24 @@ def single_playlist_analysis():
             if items:
                 artist_id = items[0]['id']
                 seed_artist.append(artist_id)
-            else:
-                print(f"No artist ID found for '{name}'")
         except Exception as e:
             print(f"Error retrieving ID for '{name}': {e}")
 
-    seed_artist = [id for id in seed_artist if id is not None]
-    print(f"Seed Artists: {seed_artist}")
-
-    unique_genres = genre_series.unique().tolist()
+    unique_genres = genre_series.dropna().unique().tolist()
     seed_genres = [str(genre) for genre in unique_genres if genre and genre != 'nan'][:3]
-    print(f"Seed Genres: {seed_genres}")
 
     tracks_data = []
     if seed_artist or seed_genres:
         try:
-            recommendations_params = {
-                'seed_artists': ','.join(seed_artist),
-                'seed_genres': ','.join(seed_genres),
-                'limit': 20
-            }
-            print(f"Recommendations Parameters: {recommendations_params}")
-
-            recommendations = sp.recommendations(**recommendations_params)
-            print(f"Recommendations Fetched: {recommendations}")
-
+            recommendations = sp.recommendations(
+                seed_artists=','.join(seed_artist),
+                seed_genres=','.join(seed_genres),
+                limit=20
+            )
             if recommendations and 'tracks' in recommendations:
                 tracks_data = recommendations['tracks']
-                print(f"Successfully fetched {len(tracks_data)} tracks")
-            else:
-                print("No tracks found in recommendations")
-                flash("No recommendations found based on the provided seeds.", "warning")
-
         except Exception as e:
-            print(f"Error fetching recommendations: {str(e)}")
             flash("Failed to fetch song recommendations. Please try again.", "error")
-    else:
-        print("No valid seeds for recommendations")
-        flash("Insufficient data to generate recommendations.", "warning")
 
     return render_template(
         'analisiplaylistsingola.html',
