@@ -183,17 +183,23 @@ td a:hover {
 .btn#cic {
     background-color: #1ED760;
     width: 130px;
+    margin-top: 20px
 }
 
 .btn#cicx2 {
 
     width: 130px;
+    margin-top: 20px
 }
 
+.cerca{
+    margin-bottom: 20px
+}
 
 .btn#cicx3 {
 
     width: 110px;
+    margin-top: 20px
 }
 
 .btn-primary {

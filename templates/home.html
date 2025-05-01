@@ -14,6 +14,39 @@
         .auth-buttons p {
             margin: 0;
         }
+        .modal-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #181818;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #1DB954;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
 <body>
@@ -31,7 +64,7 @@
     <!-- Form di ricerca -->
     <form action="{{ url_for('home.cerca') }}" method="get">
         <input type="text" name="query" placeholder="Cerca una playlist..." required value="{{ request.args.get('query', '') }}">
-        <button type="submit">Cerca</button>
+        <button class="cerca"type="submit">Cerca</button>
     </form>
 
     <section>
@@ -145,6 +178,13 @@
                     <p>Non hai playlist salvate.</p>
                 {% endif %}
             {% endif %}
+                <!-- Modal Spinner -->
+    <div class="modal-container" id="modal-container">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Analisi in corso...</p>
+        </div>
+    </div>
         </div>
         <div class="right">
             {% if not request.args.get('query') and playlists %}
@@ -189,6 +229,9 @@
             alert('Il tuo browser non supporta la condivisione nativa. Puoi copiare il link manualmente.');
         }
     }
+    function showSpinner() {
+            document.getElementById('modal-container').style.display = 'flex';
+        }
 </script>
 
 
@@ -214,8 +257,13 @@
         var link = document.getElementById("playlistLink").value;
         window.open(link, "_blank");
     }
+    
 </script>
 
+
+    
+        
+    
 
 </body>
 </html>

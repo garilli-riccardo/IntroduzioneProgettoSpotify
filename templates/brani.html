@@ -149,25 +149,13 @@
             <!-- Link da copiare -->
             <input type="text" id="playlistLink" class="form-control mt-4" value="{{ share_url }}" readonly style="display: none;">
 
-            <!-- Bottone per copiare -->
-            <button class="btn btn-success mt-2" onclick="copyToClipboard('{{ share_url }}')">Condividi - Copia il link</button>
-
-            <!-- Bottone per aprire -->
-            <button class="btn btn-primary mt-2" onclick="openLink('{{ share_url }}')">Apri in una nuova scheda</button>
-
-            <!-- Messaggio di successo -->
-            <div id="successMessage" class="alert alert-success mt-2" style="display: none;">
-                Link copiato con successo! Ora puoi condividerlo ovunque.
-            </div>
 
 
-            <!-- Messaggio Copia -->
-            <div id="copyMessage" class="alert alert-success mt-2" style="display: none;">
-                Link copiato con successo! Ora puoi condividerlo ovunque.
-            </div>
 
+
+  
             <!-- Modal Social -->
-            <button class="btn btn-warning mt-4" data-bs-toggle="modal" data-bs-target="#shareModal">Condividi su Social</button>
+            <button class="btn btn-warning mt-4" data-bs-toggle="modal" data-bs-target="#shareModal">Condividi sui Social</button>
 
             <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
