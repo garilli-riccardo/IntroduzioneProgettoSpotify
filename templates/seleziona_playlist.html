@@ -78,7 +78,7 @@
             text-align: center;
             margin-top: 30px;
         }
-        button {
+        button, a {
             background-color: #1DB954;
             border: none;
             padding: 10px 20px;
@@ -87,17 +87,11 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #1ed760;
-        }
-        a {
-            color: #1DB954;
+            display: inline-block;
             text-decoration: none;
-            font-size: 1rem;
-            margin-top: 20px;
-            display: block;
-            text-align: center;
+        }
+        button:hover, a:hover {
+            background-color: #1ed760;
         }
         .toast-message {
             position: fixed;
@@ -155,14 +149,6 @@
 <body>
 
     <h1>Seleziona due playlist da confrontare</h1>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="toast-message">
-                <p>{{ messages[0] }}</p>
-            </div>
-        {% endif %}
-    {% endwith %}
 
     <form action="{{ url_for('analysis.confronta_playlist') }}" method="POST" id="confronta-form" onsubmit="showSpinner()">
         <div class="playlist-container">

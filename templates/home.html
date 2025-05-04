@@ -46,23 +46,94 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        ul li {
+            background-color: #181818;
+        }
+
+        .share-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .share-modal .modal-content {
+            background-color: #1e1e1e;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: white;
+        }
+
+        .share-modal .modal-content a {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            float: right;
+            cursor: pointer;
+        }
+
+        .btn-whatsapp { background-color: #25D366; }
+        .btn-facebook { background-color: #3b5998; }
+        .btn-twitter { background-color: #1DA1F2; }
+        .btn-linkedin { background-color: #0077b5; }
+
+        #imp{
+            background-color: gray;
+        }
+        #cerca{
+            margin-right: 50px;
+        }
     </style>
 </head>
 <body>
 
+<!-- Dropdown Auth Menu -->
+<div style="position: absolute; top: 20px; right: 20px;">
+    <button onclick="toggleDropdown()" id="imp" class="btn btn-secondary">impostazioni</button>
+    <div id="authDropdown" style="display: none; position: absolute; right: 0; background-color: #1e1e1e; border: 1px solid #ccc; border-radius: 5px; padding: 10px; min-width: 200px; z-index: 999;">
+        {% if user_sp %}
+            <p><a href="{{ url_for('auth.logout') }}" class="btn btn-warning w-100 mb-2">Logout da Spotify</a></p>
+        {% else %}
+            <p><a href="{{ url_for('auth.login') }}" class="btn btn-success w-100 mb-2">Collegati con Spotify</a></p>
+        {% endif %}
+        <p><a href="{{ url_for('local_login.local_logout') }}" class="btn btn-danger w-100">Cambia account Analisys</a></p>
+    </div>
+</div>
+
 <div class="container">
 
     {% if user_sp %}
-        <h1>Benvenuto, {{ user_sp['display_name'] }}! Sei loggato con Spotify.</h1>
+        <h1>Benvenuto, {{ user_sp['display_name'] }}! Sei loggato anche con Spotify.</h1>
     {% elif user_info %}
-        <h1>Benvenuto, {{ user_info['display_name'] }}! Sei loggato con il tuo account Flask.</h1>
+        <h1>Benvenuto, {{ user_info['display_name'] }}! Sei loggato con il tuo account Analisys.</h1>
+        <h4 style="margin-bottom: 30px;">Puoi collegarti con il tuo account di spotify dalle impostazioni</h4>
+        
     {% else %}
         <h1>Benvenuto, esplora le playlist!</h1>
     {% endif %}
 
     <form action="{{ url_for('home.cerca') }}" method="get">
         <input type="text" name="query" placeholder="Cerca una playlist..." required value="{{ request.args.get('query', '') }}">
-        <button class="cerca" type="submit">Cerca</button>
+        <button id="cerca"class="cerca" type="submit">Cerca</button>
     </form>
 
     <section>
@@ -106,7 +177,7 @@
                 <p><a href="{{ url_for('home.homepage') }}" class="btn btn-secondary">Torna alla Home</a></p>
 
             {% else %}
-                <h2>Le tue Playlist:</h2>
+                <h2>Le tue playlist salvate:</h2>
 
                 {% if playlists %}
                     <table>
@@ -158,7 +229,7 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <button class="btn btn-info" onclick="sharePlaylist('{{ playlist['external_urls']['spotify'] }}')">Condividi</button>
+                                        <button class="btn btn-info" onclick="openShareModal('{{ playlist['external_urls']['spotify'] }}')">Condividi</button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -169,7 +240,6 @@
                 {% endif %}
             {% endif %}
 
-            <!-- Modal Spinner -->
             <div class="modal-container" id="modal-container">
                 <div class="modal-content">
                     <div class="spinner"></div>
@@ -190,56 +260,44 @@
         </div>
     </section>
 
-    <div class="auth-buttons">
-        {% if user_sp %}
-            <p><a href="{{ url_for('auth.logout') }}" class="btn btn-warning">Logout da Spotify</a></p>
-        {% else %}
-            <p><a href="{{ url_for('auth.login') }}" class="btn btn-success">Accedi con Spotify</a></p>
-        {% endif %}
-        <p><a href="{{ url_for('home.suggerimenti') }}" class="btn btn-primary">Ottieni Suggerimenti di Brani</a></p>
-        <p><a href="{{ url_for('local_login.local_logout') }}" class="btn btn-danger">Logout account locale</a></p>
-    </div>
-
 </div>
 
-<!-- SCRIPT -->
+<div id="shareModal" class="share-modal">
+    <div class="modal-content">
+        <button class="btn-close" onclick="document.getElementById('shareModal').style.display='none'">&times;</button>
+        <h2>Condividi Playlist</h2>
+        <a id="whatsappShare" href="#" target="_blank" class="btn-whatsapp">WhatsApp</a>
+        <a id="facebookShare" href="#" target="_blank" class="btn-facebook">Facebook</a>
+        <a id="twitterShare" href="#" target="_blank" class="btn-twitter">Twitter</a>
+        <a id="linkedinShare" href="#" target="_blank" class="btn-linkedin">LinkedIn</a>
+    </div>
+</div>
+
 <script>
     function showSpinner() {
         document.getElementById('modal-container').style.display = 'flex';
     }
 
-    function sharePlaylist(link) {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Ascolta questa Playlist su Spotify!',
-                url: link
-            }).then(() => {
-                console.log('Playlist condivisa con successo!');
-            }).catch((error) => {
-                console.error('Errore nella condivisione: ', error);
-            });
-        } else {
-            alert('Il tuo browser non supporta la condivisione nativa. Puoi copiare il link manualmente.');
+    function openShareModal(url) {
+        document.getElementById('shareModal').style.display = 'block';
+        document.getElementById('whatsappShare').href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(url);
+        document.getElementById('facebookShare').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+        document.getElementById('twitterShare').href = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(url);
+        document.getElementById('linkedinShare').href = 'https://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(url);
+    }
+
+    function toggleDropdown() {
+        const dropdown = document.getElementById("authDropdown");
+        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    }
+
+    window.addEventListener('click', function(e) {
+        const button = document.querySelector('button[onclick="toggleDropdown()"]');
+        const dropdown = document.getElementById("authDropdown");
+        if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
         }
-    }
-
-    function copyToClipboard() {
-        var link = document.getElementById("playlistLink").value;
-        navigator.clipboard.writeText(link).then(function() {
-            var message = document.getElementById("copyMessage");
-            message.style.display = 'block';
-            setTimeout(function() {
-                message.style.display = 'none';
-            }, 2000);
-        }).catch(function(error) {
-            console.error('Errore nella copia: ', error);
-        });
-    }
-
-    function openLink() {
-        var link = document.getElementById("playlistLink").value;
-        window.open(link, "_blank");
-    }
+    });
 </script>
 
 </body>

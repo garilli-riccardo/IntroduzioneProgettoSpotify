@@ -7,13 +7,15 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
+  <h1>Benuto in analisys spotify</h1>
+  <p>in questo sito potrai cercare analizzare cercare le playlist di spotify anche quelle del tuo account Analisys creato qui o quello di Spotify</p>
     <div class="auth-container">
         <h1>Login</h1>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              {% if message == 'Registrazione completata con successo! Ora puoi accedere.' or message == 'Password errata.' %}
+              {% if message == 'Registrazione completata con successo! Ora puoi accedere.' or message == 'Password errata.' or message == 'Utente non trovato. Registrati prima!'%}
                 <div class="flash {{ category }}">
                     {{ message }}
                 </div>

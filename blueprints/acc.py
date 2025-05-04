@@ -15,7 +15,7 @@ def login_page():
         utenti = db.get_Utente()
         user_data = next((u for u in utenti if u[0] == username), None)
 
-        if not user_data:
+        if not user_data or user_data is None:
             flash("Utente non trovato. Registrati prima!", "error")
             return redirect(url_for('local_login.login_page'))
 
@@ -24,7 +24,6 @@ def login_page():
         if check_password_hash(stored_password_hash, password):
             user = User(nickname=stored_nickname)
             login_user(user)
-            flash("Login effettuato con successo!", "success")
             return redirect(url_for('home.homepage'))
         else:
             flash("Password errata.", "error")
